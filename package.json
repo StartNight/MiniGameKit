@@ -1,0 +1,22 @@
+{
+  "name": "com.felix.oneselfunitykit",
+  "displayName": "OneselfUnityKit",
+  "version": "0.1",
+  "unity": "2020.1",
+  "unityRelease": "0a10",
+  "description": "自己常用的Unity脚本和工具收集！",
+  "keywords": [
+    "Unity Kit",
+    "Oneself"
+  ],
+  "category": "Oneself UnityKit",
+  "dependencies": {
+    "com.unity.ugui": "1.0.0"
+  },
+  "repository": {
+    "url": "https://gitee.com/Felix_Lee16/oneself-unity-kit.git",
+    "type": "git",
+    "revision": "01e57e3b7de18af9dfe9baaa0a0ff5cc4765c899"
+  }
+
+}
