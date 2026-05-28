@@ -1,22 +1,18 @@
 {
-  "name": "com.felix.oneselfunitykit",
-  "displayName": "OneselfUnityKit",
-  "version": "0.1",
-  "unity": "2020.1",
-  "unityRelease": "0a10",
-  "description": "自己常用的Unity脚本和工具收集！",
+  "name": "com.loveminigame.minigamekit",
+  "displayName": "MiniGameKit",
+  "version": "0.1.0",
+  "unity": "2022.3",
+  "description": "小游戏平台常用脚本与工具（微信、抖音等）。",
   "keywords": [
-    "Unity Kit",
-    "Oneself"
+    "MiniGame",
+    "WeChat",
+    "Douyin",
+    "SDK"
   ],
-  "category": "Oneself UnityKit",
+  "category": "Mini Game",
   "dependencies": {
+    "com.unity.textmeshpro": "3.0.9",
     "com.unity.ugui": "1.0.0"
-  },
-  "repository": {
-    "url": "https://gitee.com/Felix_Lee16/oneself-unity-kit.git",
-    "type": "git",
-    "revision": "01e57e3b7de18af9dfe9baaa0a0ff5cc4765c899"
   }
-
 }

@@ -1,0 +1,31 @@
+{
+    "name": "MiniGameKit.Editor.Addressables",
+    "rootNamespace": "MiniGameKit.Editor",
+    "references": [
+        "MiniGameKit.Runtime.Addressables",
+        "GUID:5efd170ecd8084500bed5692932fe14e",
+        "GUID:eb6ae48726f0b434e9d6ea7d36a67545",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor",
+        "Unity.ResourceManager"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_ADDRESSABLES"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.addressables",
+            "expression": "1.0.0",
+            "define": "UNITY_ADDRESSABLES"
+        }
+    ],
+    "noEngineReferences": false
+}
