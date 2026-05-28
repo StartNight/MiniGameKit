@@ -32,6 +32,19 @@ namespace MiniGameKit.Editor
             "\"FS_createPath\",\"FS_createDataFile\",\"stackTrace\",\"writeStackCookie\",\"checkStackCookie\"," +
             "\"lengthBytesUTF8\",\"stringToUTF8\"]'";
 
+        /// <summary>
+        /// 微信「生成并转换」前确保生成 External 符号文件（build.js.symbols），供 WX SDK preprocessSymbols 使用。
+        /// 勿与 <see cref="ApplyReleaseSizeOptimizations"/> 混用。
+        /// </summary>
+        public static void EnsureWeChatExportPlayerSettings()
+        {
+#if UNITY_2021_2_OR_NEWER
+            PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.External;
+#else
+            PlayerSettings.WebGL.debugSymbols = true;
+#endif
+        }
+
         public static void ApplyReleaseSizeOptimizations()
         {
 #if UNITY_2021_2_OR_NEWER

@@ -26,7 +26,7 @@ namespace MiniGameKit.Editor
         private BuildPlatform _platform = BuildPlatform.WebGL;
         private bool _useWeChatProvider = false;
         private bool _applyWebGLOptimizations = true;
-        private bool _buildAddressables = true;
+        private bool _buildAddressables = false;
         private bool _switchBuildTarget = true;
         private bool _developmentBuild = false;
         private bool _autoRun = false;
@@ -200,7 +200,21 @@ namespace MiniGameKit.Editor
 
             if (isWebGL)
             {
-                _applyWebGLOptimizations = EditorGUILayout.Toggle("应用 WebGL 发布优化", _applyWebGLOptimizations);
+                if (_platform == BuildPlatform.WeChatMiniGame)
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.Toggle("应用 WebGL 发布优化", false);
+                    EditorGUI.EndDisabledGroup();
+                    _applyWebGLOptimizations = false;
+                    EditorGUILayout.HelpBox(
+                        "微信构建不使用「WebGL 发布优化」（会关闭 Debug Symbols，导致 preprocessSymbols 失败）。\n" +
+                        "浏览器 H5 包请在「WebGL」平台下单独构建并开启该选项。",
+                        MessageType.Info);
+                }
+                else
+                {
+                    _applyWebGLOptimizations = EditorGUILayout.Toggle("应用 WebGL 发布优化", _applyWebGLOptimizations);
+                }
             }
 
             EditorGUI.indentLevel--;

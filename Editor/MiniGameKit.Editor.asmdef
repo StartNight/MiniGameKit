@@ -3,12 +3,8 @@
     "rootNamespace": "MiniGameKit.Editor",
     "references": [
         "MiniGameKit.Runtime",
-        "MiniGameKit.Editor.Addressables",
         "GUID:5efd170ecd8084500bed5692932fe14e",
         "GUID:eb6ae48726f0b434e9d6ea7d36a67545",
-        "Unity.Addressables",
-        "Unity.Addressables.Editor",
-        "Unity.ResourceManager",
         "Unity.TextMeshPro",
         "Unity.TextMeshPro.Editor"
     ],

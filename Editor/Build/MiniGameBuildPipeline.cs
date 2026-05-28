@@ -37,7 +37,7 @@ namespace MiniGameKit.Editor
         public BuildPlatform Platform = BuildPlatform.WebGL;
         public bool UseWeChatProvider = false;
         public bool ApplyWebGLOptimizations = false;
-        public bool BuildAddressables = true;
+        public bool BuildAddressables = false;
         public bool SwitchBuildTarget = true;
         public bool AutoRun = false;
         public bool DevelopmentBuild = false;
@@ -53,17 +53,27 @@ namespace MiniGameKit.Editor
             {
                 case BuildPlatform.WeChatMiniGame:
                     config.UseWeChatProvider = true;
-                    config.ApplyWebGLOptimizations = true;
+                    // 勿默认开启：ApplyReleaseSizeOptimizations 会关闭 debugSymbolMode，导致微信 preprocessSymbols 失败
+                    config.ApplyWebGLOptimizations = false;
                     config.DefaultOutputDir = "build/WeChatMiniGame";
+#if UNITY_ADDRESSABLES
+                    config.BuildAddressables = true;
+#endif
                     break;
                 case BuildPlatform.DouyinMiniGame:
                     config.UseWeChatProvider = false;
                     config.DefaultOutputDir = "build/DouyinMiniGame";
+#if UNITY_ADDRESSABLES
+                    config.BuildAddressables = true;
+#endif
                     break;
                 case BuildPlatform.WebGL:
                     config.UseWeChatProvider = false;
                     config.ApplyWebGLOptimizations = true;
                     config.DefaultOutputDir = "build/WebGL";
+#if UNITY_ADDRESSABLES
+                    config.BuildAddressables = true;
+#endif
                     break;
                 case BuildPlatform.Android:
                     config.DefaultOutputDir = "build/Android";
@@ -183,8 +193,7 @@ namespace MiniGameKit.Editor
 #else
                 if (config.BuildAddressables)
                 {
-                    LogError("未安装 com.unity.addressables，无法构建 Addressables 内容");
-                    return null;
+                    Log("未安装 Addressables，已跳过 Addressables 构建（本项目使用 Resources 等资源方案）。");
                 }
 #endif
 
@@ -256,10 +265,12 @@ namespace MiniGameKit.Editor
                     return false;
                 }
 
+                OnProgress?.Invoke(0.05f, "准备微信导出 PlayerSettings（External 调试符号）...");
+                WebGLCiBuild.EnsureWeChatExportPlayerSettings();
                 if (config.ApplyWebGLOptimizations)
                 {
-                    OnProgress?.Invoke(0.08f, "应用 WebGL 发布大小优化 (关闭 Debug Symbols)...");
-                    WebGLCiBuild.ApplyReleaseSizeOptimizations();
+                    Log(
+                        "已忽略「WebGL 发布优化」：该选项会关闭 Debug Symbols 并切换 H5 模板，与微信「生成并转换」冲突。");
                 }
 
 #if UNITY_ADDRESSABLES
@@ -284,8 +295,7 @@ namespace MiniGameKit.Editor
 #else
                 if (config.BuildAddressables)
                 {
-                    LogError("未安装 com.unity.addressables，无法构建 Addressables 内容");
-                    return false;
+                    Log("未安装 Addressables，已跳过 Addressables 构建（本项目使用 Resources 等资源方案）。");
                 }
 #endif
 
@@ -349,8 +359,7 @@ namespace MiniGameKit.Editor
 #else
                 if (config.BuildAddressables)
                 {
-                    LogError("未安装 com.unity.addressables，无法构建 Addressables 内容");
-                    return false;
+                    Log("未安装 Addressables，已跳过 Addressables 构建（本项目使用 Resources 等资源方案）。");
                 }
 #endif
 
