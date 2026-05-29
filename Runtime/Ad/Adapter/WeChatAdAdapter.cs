@@ -13,7 +13,7 @@
 using System;
 using UnityEngine;
 
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
 using WeChatWASM;
 #endif
 
@@ -25,7 +25,7 @@ public class WeChatAdAdapter : IAdAdapter
 
     public void Initialize()
     {
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         IsInitialized = true;
         Debug.Log("[Ad] 微信小游戏广告适配器初始化完成");
 #else
@@ -40,7 +40,7 @@ public class WeChatAdAdapter : IAdAdapter
 
     public IAdUnit CreateAd(AdType type, string adUnitId)
     {
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         switch (type)
         {
             case AdType.Banner:
@@ -62,7 +62,7 @@ public class WeChatAdAdapter : IAdAdapter
 
     public bool IsAdSupported(AdType type)
     {
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         return type == AdType.Banner || type == AdType.Interstitial
             || type == AdType.RewardedVideo || type == AdType.Custom;
 #else
@@ -70,7 +70,7 @@ public class WeChatAdAdapter : IAdAdapter
 #endif
     }
 
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
 
     private class WeChatBannerAdUnit : IBannerAdUnit
     {
@@ -92,6 +92,8 @@ public class WeChatAdAdapter : IAdAdapter
         {
             AdUnitId = adUnitId;
             State = AdState.None;
+            _left = 0;
+            _top = 1620;
             _width = 1080;
             _height = 300;
         }
@@ -99,7 +101,13 @@ public class WeChatAdAdapter : IAdAdapter
         public void Load()
         {
             if (_isDestroyed) return;
+            if (_bannerAd != null) return; // 复用已创建的实例
             State = AdState.Loading;
+
+            var windowInfo = WX.GetWindowInfo();
+            _left = 0;
+            _top = (int)windowInfo.windowHeight - _height;
+            _width = (int)windowInfo.windowWidth;
 
             _bannerAd = WX.CreateBannerAd(new WXCreateBannerAdParam()
             {
@@ -114,46 +122,50 @@ public class WeChatAdAdapter : IAdAdapter
                 }
             });
 
+            _bannerAd.OnLoad(res =>
+            {
+                if (_isDestroyed) return;
+                State = AdState.Loaded;
+                Debug.Log("[Ad-WeChat] Banner广告加载成功");
+                OnLoaded?.Invoke(this);
+            });
+
             _bannerAd.OnError(err =>
             {
+                if (_isDestroyed) return;
                 State = AdState.Error;
                 Debug.LogError($"[Ad-WeChat] Banner广告加载失败: {err.errMsg}");
                 OnError?.Invoke(this, err.errMsg);
                 _bannerAd = null;
             });
 
-            // WX.CreateBannerAd is synchronous — returns a valid WXBannerAd immediately.
-            // Banner content loads asynchronously after creation; Show() is safe to call at any point.
-            State = AdState.Loaded;
-            OnLoaded?.Invoke(this);
+            _bannerAd.OnResize(res =>
+            {
+                if (_isDestroyed || _bannerAd == null) return;
+                // 拉取的广告可能跟设置的不一样，需要动态调整位置
+                var winfo = WX.GetWindowInfo();
+                _top = (int)winfo.windowHeight - (int)res.height;
+                _width = (int)res.width;
+                _height = (int)res.height;
+                _bannerAd.style.top = _top;
+                _bannerAd.style.left = 0;
+                _bannerAd.style.width = _width;
+                _bannerAd.style.height = _height;
+            });
         }
 
         public void Show()
         {
             if (_isDestroyed || _bannerAd == null) return;
-            try
-            {
-                _bannerAd.Show();
-                State = AdState.Showing;
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"[Ad-WeChat] Banner广告展示异常: {e.Message}");
-            }
+            _bannerAd.Show();
+            State = AdState.Showing;
         }
 
         public void Hide()
         {
             if (_isDestroyed || _bannerAd == null) return;
-            try
-            {
-                _bannerAd.Hide();
-                State = AdState.Loaded;
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"[Ad-WeChat] Banner广告隐藏异常: {e.Message}");
-            }
+            _bannerAd.Hide();
+            State = AdState.Loaded;
         }
 
         public void SetPosition(int left, int top) { _left = left; _top = top; }
@@ -163,7 +175,7 @@ public class WeChatAdAdapter : IAdAdapter
         {
             if (_bannerAd != null)
             {
-                try { _bannerAd.Destroy(); } catch { }
+                _bannerAd.Destroy();
                 _bannerAd = null;
             }
             _isDestroyed = true;
@@ -235,7 +247,7 @@ public class WeChatAdAdapter : IAdAdapter
         {
             if (_interstitialAd != null)
             {
-                try { _interstitialAd.Destroy(); } catch { }
+                _interstitialAd.Destroy();
                 _interstitialAd = null;
             }
             _isDestroyed = true;
@@ -281,6 +293,17 @@ public class WeChatAdAdapter : IAdAdapter
                     State = AdState.Closed;
                     OnRewarded?.Invoke(this, s.isEnded);
                     OnClosed?.Invoke(this);
+                    // 预加载下一次广告（复用同一实例，关闭后重新加载）
+                    _rewardedVideoAd.Load(loadRes =>
+                    {
+                        State = AdState.Loaded;
+                        Debug.Log("[Ad-WeChat] 激励视频预加载成功");
+                        OnLoaded?.Invoke(this);
+                    }, loadRes =>
+                    {
+                        State = AdState.Error;
+                        Debug.LogWarning("[Ad-WeChat] 激励视频预加载失败，下次调用时将重试");
+                    });
                 });
             }
 
@@ -310,7 +333,7 @@ public class WeChatAdAdapter : IAdAdapter
         {
             if (_rewardedVideoAd != null)
             {
-                try { _rewardedVideoAd.Destroy(); } catch { }
+                _rewardedVideoAd.Destroy();
                 _rewardedVideoAd = null;
             }
             _isDestroyed = true;
@@ -391,7 +414,7 @@ public class WeChatAdAdapter : IAdAdapter
         {
             if (_customAd != null)
             {
-                try { _customAd.Destroy(); } catch { }
+                _customAd.Destroy();
                 _customAd = null;
             }
             _isDestroyed = true;

@@ -118,6 +118,15 @@ public class AdManager : MonoBehaviour
             {
                 return existingAd;
             }
+            if (existingAd.State == AdState.Closed)
+            {
+                existingAd.Load();
+                return existingAd;
+            }
+            if (existingAd.State == AdState.Loading)
+            {
+                return existingAd;
+            }
             existingAd.Dispose();
             _adUnits.Remove(cacheKey);
         }
@@ -335,7 +344,7 @@ public class AdManager : MonoBehaviour
 
         foreach (var kvp in _adUnits)
         {
-            try { kvp.Value.Dispose(); } catch { }
+            kvp.Value.Dispose();
         }
         _adUnits.Clear();
 

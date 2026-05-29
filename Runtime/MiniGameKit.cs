@@ -14,7 +14,7 @@ using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
 using WeChatWASM;
 #endif
 
@@ -47,7 +47,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     private void Start()
     {
         Debug.Log("[MiniGameKit] Start");
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         WX.ShowShareMenu(new ShowShareMenuOption() { });
         WX.OnShow((res) => { OnMiniGameShow?.Invoke(); });
         WX.OnHide((res) => { OnMiniGameHide?.Invoke(); });
@@ -171,7 +171,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
             title = Application.productName;
         }
 
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         WX.ShareAppMessage(new ShareAppMessageOption()
         {
             title = title,
@@ -205,7 +205,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void OpenCustomerService()
     {
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         WX.OpenCustomerServiceConversation(new OpenCustomerServiceConversationOption()
         {
             success = (s) =>
@@ -225,7 +225,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void OpenBusinessView(string businessType = "servicecommentpage", Action<string> fail = null, Action<string> success = null)
     {
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         WX.OpenBusinessView(new OpenBusinessViewOption()
         {
             businessType = businessType,
@@ -257,7 +257,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void VibrateShort()
     {
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         WX.VibrateShort(new VibrateShortOption()
         {
             type = "heavy",
@@ -282,7 +282,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void VibrateLong()
     {
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         WX.VibrateLong(new VibrateLongOption()
         {
             success = (s) => { },
@@ -312,7 +312,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void WXReportGameStart()
     {
-#if WEIXINMINIGAME
+#if UNITY_WEBGL || WEIXINMINIGAME
         WX.ReportGameStart();
 #endif
     }
