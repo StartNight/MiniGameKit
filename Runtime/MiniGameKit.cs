@@ -62,10 +62,21 @@ public class MiniGameKit : Singleton<MiniGameKit>
     #region 广告接口 - 委托给 AdManager
 
     /// <summary>
+    /// 当前平台是否支持广告（仅微信/抖音小游戏有实际广告）
+    /// </summary>
+    private static bool IsMiniGamePlatform()
+    {
+        if (!AdManager.Instance.IsInitialized) return false;
+        var p = AdManager.Instance.CurrentPlatform;
+        return p == AdPlatform.WeChatMiniGame || p == AdPlatform.DouyinMiniGame;
+    }
+
+    /// <summary>
     /// 显示插屏广告
     /// </summary>
     public void ShowInterstitialAd(string adId)
     {
+        if (!IsMiniGamePlatform()) return;
         AdManager.Instance.ShowAd(AdType.Interstitial, adId);
     }
 
@@ -74,6 +85,11 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void ShowRewardedVideo(string adId, Action<bool> onRewardResult)
     {
+        if (!IsMiniGamePlatform())
+        {
+            onRewardResult?.Invoke(true);
+            return;
+        }
         AdManager.Instance.ShowRewardedVideo(adId, onRewardResult);
     }
 
@@ -110,13 +126,10 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// <summary>
     /// 创建并加载 Banner 广告
     /// </summary>
-    /// <param name="adId">广告位ID</param>
-    /// <param name="left">距离屏幕左侧位置</param>
-    /// <param name="top">距离屏幕顶部位置</param>
-    /// <param name="width">宽度</param>
-    /// <param name="height">高度</param>
     public void CreateBannerAd(string adId, int left = 0, int top = 1620, int width = 1080, int height = 300)
     {
+        if (!IsMiniGamePlatform()) return;
+
         _bannerAdUnitId = adId;
         if (AdManager.Instance.IsInitialized)
         {
@@ -134,18 +147,18 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// <summary>
     /// 显示Banner广告
     /// </summary>
-    /// <param name="adId">为空时使用最近一次 CreateBannerAd 的 ID</param>
     public void BannerAdShow(string adId = null)
     {
+        if (!IsMiniGamePlatform()) return;
         AdManager.Instance.ShowAd(AdType.Banner, adId ?? _bannerAdUnitId);
     }
 
     /// <summary>
     /// 隐藏Banner广告
     /// </summary>
-    /// <param name="adId">为空时使用最近一次 CreateBannerAd 的 ID</param>
     public void BannerAdHide(string adId = null)
     {
+        if (!IsMiniGamePlatform()) return;
         AdManager.Instance.HideAd(AdType.Banner, adId ?? _bannerAdUnitId);
     }
 
@@ -154,6 +167,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void ShowCustomAd()
     {
+        if (!IsMiniGamePlatform()) return;
         AdManager.Instance.ShowAd(AdType.Custom);
     }
 
