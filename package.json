@@ -1,7 +1,7 @@
 {
   "name": "com.loveminigame.minigamekit",
   "displayName": "MiniGameKit",
-  "version": "0.1.0",
+  "version": "2.1.0",
   "unity": "2022.3",
   "description": "小游戏平台常用脚本与工具（微信、抖音等）。",
   "keywords": [

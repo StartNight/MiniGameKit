@@ -133,8 +133,16 @@ public class DouyinAdAdapter : IAdAdapter
             State = AdState.Loaded;
         }
 
-        public void SetPosition(int left, int top) { }
-        public void SetSize(int width, int height) { }
+        public void SetPosition(int left, int top)
+        {
+            // TODO: TT SDK does not expose banner position change after creation.
+            // If CreateBannerAdParam supports style, set it during Load().
+        }
+
+        public void SetSize(int width, int height)
+        {
+            // TODO: TT SDK does not expose banner resize after creation.
+        }
 
         public void Dispose()
         {
@@ -298,6 +306,7 @@ public class DouyinAdAdapter : IAdAdapter
 
         public void Load()
         {
+            // TT SDK has no "Custom Ad" type. This is a stub for interface compatibility.
             State = AdState.Loaded;
             OnLoaded?.Invoke(this);
         }

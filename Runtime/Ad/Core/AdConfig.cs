@@ -19,11 +19,45 @@ public class AdConfig
     public AdPlatform CurrentPlatform;
     public bool EnableAd = true;
     public float BannerRefreshInterval = 30f;
-    public Dictionary<AdType, Dictionary<AdPlatform, string>> AdUnitIdMap = new Dictionary<AdType, Dictionary<AdPlatform, string>>();
+
+    [System.Serializable]
+    public class AdUnitIdEntry
+    {
+        public AdType adType;
+        public AdPlatform platform;
+        public string adUnitId;
+    }
+
+    // Unity cannot serialize nested dictionaries; use a list for inspector editing instead.
+    public List<AdUnitIdEntry> adUnitIdEntries = new List<AdUnitIdEntry>();
+
+    private Dictionary<AdType, Dictionary<AdPlatform, string>> _adUnitIdMap;
+
+    private Dictionary<AdType, Dictionary<AdPlatform, string>> GetOrBuildMap()
+    {
+        if (_adUnitIdMap != null)
+            return _adUnitIdMap;
+
+        _adUnitIdMap = new Dictionary<AdType, Dictionary<AdPlatform, string>>();
+        foreach (var entry in adUnitIdEntries)
+        {
+            if (string.IsNullOrEmpty(entry.adUnitId))
+                continue;
+
+            if (!_adUnitIdMap.TryGetValue(entry.adType, out var platformMap))
+            {
+                platformMap = new Dictionary<AdPlatform, string>();
+                _adUnitIdMap[entry.adType] = platformMap;
+            }
+            platformMap[entry.platform] = entry.adUnitId;
+        }
+        return _adUnitIdMap;
+    }
 
     public string GetAdUnitId(AdType adType, AdPlatform platform)
     {
-        if (AdUnitIdMap.TryGetValue(adType, out var platformMap))
+        var map = GetOrBuildMap();
+        if (map.TryGetValue(adType, out var platformMap))
         {
             if (platformMap.TryGetValue(platform, out var adUnitId))
             {
@@ -36,10 +70,22 @@ public class AdConfig
 
     public void SetAdUnitId(AdType adType, AdPlatform platform, string adUnitId)
     {
-        if (!AdUnitIdMap.ContainsKey(adType))
+        // Update lookup cache
+        var map = GetOrBuildMap();
+        if (!map.TryGetValue(adType, out var platformMap))
         {
-            AdUnitIdMap[adType] = new Dictionary<AdPlatform, string>();
+            platformMap = new Dictionary<AdPlatform, string>();
+            map[adType] = platformMap;
         }
-        AdUnitIdMap[adType][platform] = adUnitId;
+        platformMap[platform] = adUnitId;
+
+        // Update serializable list
+        adUnitIdEntries.RemoveAll(e => e.adType == adType && e.platform == platform);
+        adUnitIdEntries.Add(new AdUnitIdEntry
+        {
+            adType = adType,
+            platform = platform,
+            adUnitId = adUnitId
+        });
     }
 }

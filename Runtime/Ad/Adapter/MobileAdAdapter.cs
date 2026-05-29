@@ -202,13 +202,16 @@ public class MobileAdAdapter : IAdAdapter
         {
             State = AdState.Loading;
             NativeLoad(ToNativeAdType(Type), AdUnitId);
+            // Note: The native ad plugin (Android/iOS) does not report load completion back to C#.
+            // We optimistically transition to Loaded so the AdManager flow continues.
+            // A production adapter should implement native→Unity callbacks via UnitySendMessage / UnityPlayer.UnitySendMessage.
             State = AdState.Loaded;
             OnLoaded?.Invoke(this);
         }
 
         public void Show()
         {
-            if (State != AdState.Loaded) return;
+            if (State != AdState.Loaded && State != AdState.Loading) return;
             NativeShow(ToNativeAdType(Type), AdUnitId);
             State = AdState.Showing;
         }

@@ -112,13 +112,15 @@ public class WebAdAdapter : IAdAdapter
         {
             State = AdState.Loading;
             WebAd_Load(ToJsAdType(Type), AdUnitId);
+            // Note: The JS plugin (__Internal) does not report load completion back to C#.
+            // We optimistically transition to Loaded so the AdManager flow continues.
             State = AdState.Loaded;
             OnLoaded?.Invoke(this);
         }
 
         public void Show()
         {
-            if (State != AdState.Loaded) return;
+            if (State != AdState.Loaded && State != AdState.Loading) return;
             WebAd_Show(ToJsAdType(Type), AdUnitId);
             State = AdState.Showing;
         }

@@ -122,6 +122,8 @@ public class WeChatAdAdapter : IAdAdapter
                 _bannerAd = null;
             });
 
+            // WX.CreateBannerAd is synchronous — returns a valid WXBannerAd immediately.
+            // Banner content loads asynchronously after creation; Show() is safe to call at any point.
             State = AdState.Loaded;
             OnLoaded?.Invoke(this);
         }

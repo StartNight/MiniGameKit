@@ -81,6 +81,12 @@ public class AdManager : MonoBehaviour
             return null;
         }
 
+        if (_isDestroyed)
+        {
+            Debug.LogWarning("[AdManager] 实例已销毁");
+            return null;
+        }
+
         if (!Config.EnableAd)
         {
             Debug.Log("[AdManager] 广告已全局禁用");
@@ -135,6 +141,7 @@ public class AdManager : MonoBehaviour
 
     public void ShowAd(AdType type, string adUnitId = null)
     {
+        if (_isDestroyed) return;
         var ad = LoadAd(type, adUnitId);
         if (ad == null) return;
 
@@ -159,6 +166,8 @@ public class AdManager : MonoBehaviour
 
     public void HideAd(AdType type, string adUnitId = null)
     {
+        if (_isDestroyed) return;
+
         if (string.IsNullOrEmpty(adUnitId))
         {
             adUnitId = Config.GetAdUnitId(type, CurrentPlatform);
@@ -176,6 +185,13 @@ public class AdManager : MonoBehaviour
         if (!IsInitialized)
         {
             Debug.LogWarning("[AdManager] 尚未初始化，请先调用 Initialize");
+            onRewardResult?.Invoke(false);
+            return;
+        }
+
+        if (_isDestroyed)
+        {
+            Debug.LogWarning("[AdManager] 实例已销毁");
             onRewardResult?.Invoke(false);
             return;
         }
@@ -298,11 +314,13 @@ public class AdManager : MonoBehaviour
 
     private void OnAdError(IAdUnit adUnit, string error)
     {
+        if (_isDestroyed) return;
         Debug.LogError($"[AdManager] 广告错误: type={adUnit.Type}, id={adUnit.AdUnitId}, error={error}");
     }
 
     private void OnAdClosed(IAdUnit adUnit)
     {
+        if (_isDestroyed) return;
         Debug.Log($"[AdManager] 广告关闭: type={adUnit.Type}, id={adUnit.AdUnitId}");
     }
 

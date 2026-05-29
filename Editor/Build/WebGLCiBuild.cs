@@ -69,7 +69,9 @@ namespace MiniGameKit.Editor
         public static void ApplyLinkerSafeWebGLSettings()
         {
 #if UNITY_2021_2_OR_NEWER
-            PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.Off;
+            // 若已设为 External（微信小游戏导出需要生成 build.js.symbols），不要覆盖
+            if (PlayerSettings.WebGL.debugSymbolMode != WebGLDebugSymbolMode.External)
+                PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.Off;
 #else
             PlayerSettings.WebGL.debugSymbols = false;
 #endif

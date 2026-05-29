@@ -37,21 +37,24 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 
     public void Awake()
     {
-        if (m_instance != null && m_instance != this)
+        lock (m_lock)
         {
-            Destroy(gameObject);
-            return;
-        }
-        
-        m_instance = this as T;
-
-        if (DontDestroy)
-        {
-            if (transform.parent != null)
+            if (m_instance != null && m_instance != this)
             {
-                transform.SetParent(null);
+                Destroy(gameObject);
+                return;
             }
-            DontDestroyOnLoad(gameObject);
+
+            m_instance = this as T;
+
+            if (DontDestroy)
+            {
+                if (transform.parent != null)
+                {
+                    transform.SetParent(null);
+                }
+                DontDestroyOnLoad(gameObject);
+            }
         }
 
         AwakeOf();
