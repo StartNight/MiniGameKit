@@ -8,26 +8,17 @@
  * UnityVersion:	2022.3.43f1c1
  * Description:		兼容微信和抖音的小游戏工具包，广告逻辑委托给AdManager
  *
-*****************************************************/
+ *****************************************************/
 
 using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
-
-#if UNITY_WEBGL || WEIXINMINIGAME
-using WeChatWASM;
-#endif
-
-#if DOUYINMINIGAME
-using TTSDK;
-using TTSDK.UNBridgeLib.LitJson;
-#endif
 
 /// <summary>
 /// 兼容微信和抖音的小游戏工具包
 /// </summary>
 public class MiniGameKit : Singleton<MiniGameKit>
 {
+    private IPlatformSDK _currentPlatform => AdManager.Instance.PlatformSDK;
     private bool isDestroyed = false;
     private string _bannerAdUnitId;
 
@@ -39,24 +30,18 @@ public class MiniGameKit : Singleton<MiniGameKit>
     {
         base.AwakeOf();
         AdManager.Instance.Initialize();
-#if DOUYINMINIGAME
-        TT.InitSDK();
-#endif
+
+        if (_currentPlatform != null)
+        {
+            _currentPlatform.OnShow += () => OnMiniGameShow?.Invoke();
+            _currentPlatform.OnHide += () => OnMiniGameHide?.Invoke();
+        }
     }
 
     private void Start()
     {
         Debug.Log("[MiniGameKit] Start");
-#if UNITY_WEBGL || WEIXINMINIGAME
-        WX.ShowShareMenu(new ShowShareMenuOption() { });
-        WX.OnShow((res) => { OnMiniGameShow?.Invoke(); });
-        WX.OnHide((res) => { OnMiniGameHide?.Invoke(); });
-#endif
-#if DOUYINMINIGAME
-        TT.ShowShareMenu();
-        TT.OnShow((res) => { OnMiniGameShow?.Invoke(); });
-        TT.OnHide((res) => { OnMiniGameHide?.Invoke(); });
-#endif
+        // 初始化移到了 AwakeOf 的 _currentPlatform.Initialize()
     }
 
     #region 广告接口 - 委托给 AdManager
@@ -68,7 +53,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     {
         if (!AdManager.Instance.IsInitialized) return false;
         var p = AdManager.Instance.CurrentPlatform;
-        return p == AdPlatform.WeChatMiniGame || p == AdPlatform.DouyinMiniGame;
+        return p == AdPlatform.WeChatMiniGame || p == AdPlatform.DouyinMiniGame || p == AdPlatform.CrazyGames;
     }
 
     /// <summary>
@@ -94,36 +79,6 @@ public class MiniGameKit : Singleton<MiniGameKit>
     }
 
     /// <summary>
-    /// 展示激励视频广告，看完回调 action (已废弃，建议使用 ShowRewardedVideo)
-    /// </summary>
-    [Obsolete("Use ShowRewardedVideo instead")]
-    public void ShowRewardedVideoAd(string adId, Action action)
-    {
-        ShowRewardedVideo(adId, (isRewarded) =>
-        {
-            if (isRewarded)
-            {
-                action?.Invoke();
-            }
-        });
-    }
-
-    /// <summary>
-    /// 展示激励视频广告，看完回调 success (已废弃，建议使用 ShowRewardedVideo)
-    /// </summary>
-    [Obsolete("Use ShowRewardedVideo instead")]
-    public void CreateRewardedVideoAd(string adId, Action<string> success)
-    {
-        ShowRewardedVideo(adId, (isRewarded) =>
-        {
-            if (isRewarded)
-            {
-                success?.Invoke(string.Empty);
-            }
-        });
-    }
-
-    /// <summary>
     /// 创建并加载 Banner 广告
     /// </summary>
     public void CreateBannerAd(string adId, int left = 0, int top = 1620, int width = 1080, int height = 300)
@@ -136,11 +91,14 @@ public class MiniGameKit : Singleton<MiniGameKit>
             AdManager.Instance.Config.SetAdUnitId(AdType.Banner, AdManager.Instance.CurrentPlatform, adId);
         }
 
+        int bannerLeft = 0, bannerTop = 0, bannerWidth = 0, bannerHeight = 0;
+        _currentPlatform?.GetBannerRect(left, top, width, height, out bannerLeft, out bannerTop, out bannerWidth, out bannerHeight);
+
         var banner = AdManager.Instance.LoadAd(AdType.Banner, adId);
         if (banner is IBannerAdUnit bannerUnit)
         {
-            bannerUnit.SetPosition(left, top);
-            bannerUnit.SetSize(width, height);
+            bannerUnit.SetPosition(bannerLeft, bannerTop);
+            bannerUnit.SetSize(bannerWidth, bannerHeight);
         }
     }
 
@@ -184,34 +142,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
         {
             title = Application.productName;
         }
-
-#if UNITY_WEBGL || WEIXINMINIGAME
-        WX.ShareAppMessage(new ShareAppMessageOption()
-        {
-            title = title,
-            query = query
-        });
-#endif
-
-#if DOUYINMINIGAME
-        JsonData shareJson = new JsonData();
-        shareJson["title"] = title;
-        shareJson["query"] = query;
-
-        TT.ShareAppMessage(shareJson, 
-            (data) =>
-            {
-                Debug.Log("[MiniGameKit] 抖音分享成功");
-            },
-            (errMsg) =>
-            {
-                Debug.LogWarning($"[MiniGameKit] 抖音分享失败: {errMsg}");
-            },
-            () =>
-            {
-                Debug.Log("[MiniGameKit] 抖音分享取消");
-            });
-#endif
+        _currentPlatform?.ShareApp(title, query);
     }
 
     /// <summary>
@@ -219,76 +150,27 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void OpenCustomerService()
     {
-#if UNITY_WEBGL || WEIXINMINIGAME
-        WX.OpenCustomerServiceConversation(new OpenCustomerServiceConversationOption()
-        {
-            success = (s) =>
-            {
-                Debug.Log("[MiniGameKit] 打开微信客服会话成功");
-            },
-            fail = (res) =>
-            {
-                Debug.LogError($"[MiniGameKit] 打开微信客服会话失败: {res.errMsg}");
-            }
-        });
-#endif
+        _currentPlatform?.OpenCustomerService();
     }
 
     /// <summary>
-    /// 打开微信特定业务场景面板（如客服会话、游戏评星等）
+    /// 打开特定业务场景面板（如客服会话、游戏评星等）
     /// </summary>
     public void OpenBusinessView(string businessType = "servicecommentpage", Action<string> fail = null, Action<string> success = null)
     {
-#if UNITY_WEBGL || WEIXINMINIGAME
-        WX.OpenBusinessView(new OpenBusinessViewOption()
-        {
-            businessType = businessType,
-            fail = (s) =>
-            {
-                Debug.LogWarning($"[MiniGameKit] OpenBusinessView 失败: {s.errMsg}");
-                fail?.Invoke(s.errMsg);
-            },
-            success = (s) =>
-            {
-                Debug.Log("[MiniGameKit] OpenBusinessView 成功");
-                success?.Invoke(s.ToString());
-            }
-        });
-#endif
+        _currentPlatform?.OpenBusinessView(businessType, fail, success);
     }
 
     #endregion
 
     #region 震动接口
 
-#if UNITY_WEBGL && !UNITY_EDITOR
-    [DllImport("__Internal")]
-    private static extern void Vibrate(int duration);
-#endif
-
     /// <summary>
     /// 短震动（轻微震动反馈）
     /// </summary>
     public void VibrateShort()
     {
-#if UNITY_WEBGL || WEIXINMINIGAME
-        WX.VibrateShort(new VibrateShortOption()
-        {
-            type = "heavy",
-            success = (s) => { },
-            fail = (s) => { },
-            complete = (s) => { }
-        });
-#elif DOUYINMINIGAME
-        TT.VibrateShort(new TTSDK.VibrateShortOption()
-        {
-            type = "heavy"
-        });
-#elif UNITY_WEBGL && !UNITY_EDITOR
-        Vibrate(15);
-#elif UNITY_IOS || UNITY_ANDROID
-        Handheld.Vibrate();
-#endif
+        _currentPlatform?.VibrateShort();
     }
 
     /// <summary>
@@ -296,25 +178,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     /// </summary>
     public void VibrateLong()
     {
-#if UNITY_WEBGL || WEIXINMINIGAME
-        WX.VibrateLong(new VibrateLongOption()
-        {
-            success = (s) => { },
-            fail = (s) => { },
-            complete = (s) => { }
-        });
-#elif DOUYINMINIGAME
-        TT.VibrateLong(new TTSDK.VibrateLongOption()
-        {
-            success = (s) => { },
-            fail = (s) => { },
-            complete = (s) => { }
-        });
-#elif UNITY_WEBGL && !UNITY_EDITOR
-        Vibrate(400);
-#elif UNITY_IOS || UNITY_ANDROID
-        Handheld.Vibrate();
-#endif
+        _currentPlatform?.VibrateLong();
     }
 
     #endregion
@@ -322,17 +186,15 @@ public class MiniGameKit : Singleton<MiniGameKit>
     #region 平台兼容保留接口
 
     /// <summary>
-    /// 上报游戏开始状态 (微信专用)
+    /// 上报游戏开始状态
     /// </summary>
     public void WXReportGameStart()
     {
-#if UNITY_WEBGL || WEIXINMINIGAME
-        WX.ReportGameStart();
-#endif
+        _currentPlatform?.ReportGameStart();
     }
 
     /// <summary>
-    /// 微信小游戏 OnShow 事件注册 (已废弃，请直接订阅 MiniGameKit.OnMiniGameShow 事件)
+    /// 小游戏 OnShow 事件注册 (已废弃，请直接订阅 MiniGameKit.OnMiniGameShow 事件)
     /// </summary>
     [Obsolete("Use MiniGameKit.OnMiniGameShow event instead")]
     public void WXOnShow()
@@ -344,5 +206,6 @@ public class MiniGameKit : Singleton<MiniGameKit>
     private void OnDestroy()
     {
         isDestroyed = true;
+        // PlatformSDK is now disposed by AdManager
     }
 }

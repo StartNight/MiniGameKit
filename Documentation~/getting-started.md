@@ -61,11 +61,14 @@ git submodule update --init --recursive
 |----|------|
 | `WEIXINMINIGAME` | 编译微信 WASM API（`WeChatWASM`） |
 | `DOUYINMINIGAME` | 编译抖音 TTSDK API |
+| `CRAZYGAMES` | 编译 CrazyGames SDK |
 
-**推荐做法：**
+**核心机制：Platform Switcher（SDK 热插拔隔离）**
 
-- 日常开发：在 `Tools/Minigame/广告/平台/` 中按需启用/禁用（见 [Editor 工具](editor-tools.md)）。
-- 正式构建：使用 `Tools/Minigame/构建/` 菜单或 CI；管线会在构建结束后**还原**宏定义。
+MiniGameKit 现已接入物理级别的 SDK 隔离。请**永远不要手动修改平台宏**。
+- **日常开发与切换**：在 Unity Editor 右上角工具栏的 **Platform Switcher** 下拉框中选择目标平台（如“微信小游戏”、“纯净 WebGL”、“Android”等）。
+- 工具会自动将其他平台的不相关 SDK 移动到根目录的 `SDKs/` 存档文件夹中，避免同级编译冲突，同时自动修改 Build Target 和 Scripting Define Symbols。
+- **正式构建**：切换平台后，打开 `Tools/Minigame/构建/`，菜单会自动变为对应当前平台的构建选项。
 
 ---
 
@@ -137,9 +140,10 @@ MiniGameKit.Instance.ShowRewardedVideo("adunit-xxxx", isRewarded =>
 
 ## 6. 第一次构建（微信小游戏）
 
-1. 安装并配置微信 Unity 转换插件（导出路径等）。
-2. `Tools/Minigame/构建/Addressables/切换为微信并构建内容`（或一键性能护航，见 [构建管线](build-pipeline.md)）。
-3. `Tools/Minigame/构建/微信小游戏/本地构建` — 等价于插件面板 **「生成并转换」**。
+1. 通过 Editor 右上角的 **Platform Switcher** 下拉框切换到“微信小游戏”平台（自动隔离其他 SDK 并配置宏）。
+2. 安装并配置微信 Unity 转换插件（导出路径等）。
+3. `Tools/Minigame/构建/Addressables/切换为微信并构建内容`（或一键性能护航，见 [构建管线](build-pipeline.md)）。
+4. `Tools/Minigame/构建/构建当前平台 (微信小游戏)` — 等价于插件面板 **「生成并转换」**。
 
 ---
 

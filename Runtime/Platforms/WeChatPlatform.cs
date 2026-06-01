@@ -1,46 +1,126 @@
-﻿/****************************************************
- * FileName:		WeChatAdAdapter
- * CompanyName:		苏州微游科技有限公司
- * Author:			Felix/李康康
- * Email:			kangkang.li@outlook.com
- * CreateTime:		2026-05-18 10:00:00
- * Version:			1.0
- * UnityVersion:	2022.3.43f1c1
- * Description:		微信小游戏平台广告适配器
- *
-*****************************************************/
-
 using System;
 using UnityEngine;
 
-#if UNITY_WEBGL || WEIXINMINIGAME
+#if WEIXINMINIGAME
 using WeChatWASM;
-#endif
 
-public class WeChatAdAdapter : IAdAdapter
+public class WeChatPlatform : IPlatformSDK
 {
     public AdPlatform Platform => AdPlatform.WeChatMiniGame;
     public string PlatformName => "微信小游戏";
     public bool IsInitialized { get; private set; }
 
+    public event Action OnShow;
+    public event Action OnHide;
+
+    private Action<WeChatWASM.OnShowListenerResult> _onShowDelegate;
+    private Action<WeChatWASM.GeneralCallbackResult> _onHideDelegate;
+
     public void Initialize()
     {
-#if UNITY_WEBGL || WEIXINMINIGAME
         IsInitialized = true;
-        Debug.Log("[Ad] 微信小游戏广告适配器初始化完成");
-#else
-        Debug.LogWarning("[Ad] 当前未定义WEIXINMINIGAME宏，微信广告适配器不可用");
+        Debug.Log("[WeChatPlatform] 微信小游戏大一统SDK初始化完成");
+
+#if !UNITY_EDITOR
+        WX.ShowShareMenu(new ShowShareMenuOption() { });
 #endif
+        _onShowDelegate = (res) => { OnShow?.Invoke(); };
+        _onHideDelegate = (res) => { OnHide?.Invoke(); };
+        WX.OnShow(_onShowDelegate);
+        WX.OnHide(_onHideDelegate);
+    }
+
+    public void Destroy()
+    {
+        Dispose();
     }
 
     public void Dispose()
     {
         IsInitialized = false;
+        if (_onShowDelegate != null) WX.OffShow(_onShowDelegate);
+        if (_onHideDelegate != null) WX.OffHide(_onHideDelegate);
     }
+
+    #region IMiniGamePlatform 实现
+
+    public void GetBannerRect(int defaultLeft, int defaultTop, int defaultWidth, int defaultHeight, out int left, out int top, out int width, out int height)
+    {
+        left = defaultLeft;
+        top = defaultTop;
+        width = defaultWidth;
+        height = defaultHeight;
+
+        var sysInfo = WX.GetSystemInfoSync();
+        if (sysInfo != null)
+        {
+            width = (int)sysInfo.windowWidth;
+            height = width * 300 / 1080;
+            left = (int)((sysInfo.windowWidth - width) / 2);
+            top = (int)sysInfo.windowHeight - height;
+        }
+    }
+
+    public void ShareApp(string title, string query)
+    {
+        WX.ShareAppMessage(new ShareAppMessageOption()
+        {
+            title = title,
+            query = query
+        });
+    }
+
+    public void OpenCustomerService()
+    {
+        WX.OpenCustomerServiceConversation(new OpenCustomerServiceConversationOption()
+        {
+            success = (s) => { Debug.Log("[WeChatPlatform] 打开微信客服会话成功"); },
+            fail = (res) => { Debug.LogError($"[WeChatPlatform] 打开微信客服会话失败: {res.errMsg}"); }
+        });
+    }
+
+    public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)
+    {
+        WX.OpenBusinessView(new OpenBusinessViewOption()
+        {
+            businessType = businessType,
+            fail = (s) =>
+            {
+                Debug.LogWarning($"[WeChatPlatform] OpenBusinessView 失败: {s.errMsg}");
+                fail?.Invoke(s.errMsg);
+            },
+            success = (s) =>
+            {
+                Debug.Log("[WeChatPlatform] OpenBusinessView 成功");
+                success?.Invoke(s.ToString());
+            }
+        });
+    }
+
+    public void VibrateShort()
+    {
+        WX.VibrateShort(new VibrateShortOption()
+        {
+            type = "heavy"
+        });
+    }
+
+    public void VibrateLong()
+    {
+        WX.VibrateLong(new VibrateLongOption());
+    }
+
+    public void ReportGameStart()
+    {
+        WX.ReportGameStart();
+    }
+
+    #endregion
+
+    #region IAdAdapter 实现
 
     public IAdUnit CreateAd(AdType type, string adUnitId)
     {
-#if UNITY_WEBGL || WEIXINMINIGAME
         switch (type)
         {
             case AdType.Banner:
@@ -52,25 +132,16 @@ public class WeChatAdAdapter : IAdAdapter
             case AdType.Custom:
                 return new WeChatCustomAdUnit(adUnitId);
             default:
-                Debug.LogWarning($"[Ad-WeChat] 不支持的广告类型: {type}");
+                Debug.LogWarning($"[WeChatPlatform] 不支持的广告类型: {type}");
                 return null;
         }
-#else
-        return null;
-#endif
     }
 
     public bool IsAdSupported(AdType type)
     {
-#if UNITY_WEBGL || WEIXINMINIGAME
         return type == AdType.Banner || type == AdType.Interstitial
             || type == AdType.RewardedVideo || type == AdType.Custom;
-#else
-        return false;
-#endif
     }
-
-#if UNITY_WEBGL || WEIXINMINIGAME
 
     private class WeChatBannerAdUnit : IBannerAdUnit
     {
@@ -101,7 +172,7 @@ public class WeChatAdAdapter : IAdAdapter
         public void Load()
         {
             if (_isDestroyed) return;
-            if (_bannerAd != null) return; // 复用已创建的实例
+            if (_bannerAd != null) return;
             State = AdState.Loading;
 
             var windowInfo = WX.GetWindowInfo();
@@ -126,7 +197,6 @@ public class WeChatAdAdapter : IAdAdapter
             {
                 if (_isDestroyed) return;
                 State = AdState.Loaded;
-                Debug.Log("[Ad-WeChat] Banner广告加载成功");
                 OnLoaded?.Invoke(this);
             });
 
@@ -134,7 +204,6 @@ public class WeChatAdAdapter : IAdAdapter
             {
                 if (_isDestroyed) return;
                 State = AdState.Error;
-                Debug.LogError($"[Ad-WeChat] Banner广告加载失败: {err.errMsg}");
                 OnError?.Invoke(this, err.errMsg);
                 _bannerAd = null;
             });
@@ -142,7 +211,6 @@ public class WeChatAdAdapter : IAdAdapter
             _bannerAd.OnResize(res =>
             {
                 if (_isDestroyed || _bannerAd == null) return;
-                // 拉取的广告可能跟设置的不一样，需要动态调整位置
                 var winfo = WX.GetWindowInfo();
                 _top = (int)winfo.windowHeight - (int)res.height;
                 _width = (int)res.width;
@@ -216,14 +284,12 @@ public class WeChatAdAdapter : IAdAdapter
             _interstitialAd.OnLoad(res =>
             {
                 State = AdState.Loaded;
-                Debug.Log("[Ad-WeChat] 插屏广告加载成功");
                 OnLoaded?.Invoke(this);
             });
 
             _interstitialAd.OnError(res =>
             {
                 State = AdState.Error;
-                Debug.LogError($"[Ad-WeChat] 插屏广告错误: {res.errMsg}");
                 OnError?.Invoke(this, res.errMsg);
             });
 
@@ -293,16 +359,13 @@ public class WeChatAdAdapter : IAdAdapter
                     State = AdState.Closed;
                     OnRewarded?.Invoke(this, s.isEnded);
                     OnClosed?.Invoke(this);
-                    // 预加载下一次广告（复用同一实例，关闭后重新加载）
                     _rewardedVideoAd.Load(loadRes =>
                     {
                         State = AdState.Loaded;
-                        Debug.Log("[Ad-WeChat] 激励视频预加载成功");
                         OnLoaded?.Invoke(this);
                     }, loadRes =>
                     {
                         State = AdState.Error;
-                        Debug.LogWarning("[Ad-WeChat] 激励视频预加载失败，下次调用时将重试");
                     });
                 });
             }
@@ -310,12 +373,10 @@ public class WeChatAdAdapter : IAdAdapter
             _rewardedVideoAd.Load(s =>
             {
                 State = AdState.Loaded;
-                Debug.Log("[Ad-WeChat] 激励视频加载成功");
                 OnLoaded?.Invoke(this);
             }, s =>
             {
                 State = AdState.Error;
-                Debug.LogError("[Ad-WeChat] 激励视频加载失败");
                 OnError?.Invoke(this, "激励视频加载失败");
             });
         }
@@ -422,5 +483,6 @@ public class WeChatAdAdapter : IAdAdapter
         }
     }
 
-#endif
+    #endregion
 }
+#endif

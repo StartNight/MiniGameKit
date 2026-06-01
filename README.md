@@ -18,14 +18,14 @@ MiniGame 文件夹是一个**通用的小游戏功能组件库**，为 Unity 项
 
 基于**适配器模式 + 工厂模式**构建的统一广告管理框架，支持以下平台：
 
-| 平台 | 宏定义 | 广告SDK |
-|------|--------|---------|
-| 微信小游戏 | `WEIXINMINIGAME` | WeChatWASM SDK |
-| 抖音小游戏 | `DOUYINMINIGAME` | TTSDK (字节跳动) |
-| Web (H5) | `UNITY_WEBGL` | JS插件 (jslib) |
-| Android | `UNITY_ANDROID` | 原生AAR/JAR插件 |
-| iOS | `UNITY_IOS` | 原生Framework插件 |
-| Editor | `UNITY_EDITOR` | 模拟适配器(调试用) |
+| 平台       | 宏定义           | 广告SDK            |
+| ---------- | ---------------- | ------------------ |
+| 微信小游戏 | `WEIXINMINIGAME` | WeChatWASM SDK     |
+| 抖音小游戏 | `DOUYINMINIGAME` | TTSDK (字节跳动)   |
+| Web (H5)   | `UNITY_WEBGL`    | JS插件 (jslib)     |
+| Android    | `UNITY_ANDROID`  | 原生AAR/JAR插件    |
+| iOS        | `UNITY_IOS`      | 原生Framework插件  |
+| Editor     | `UNITY_EDITOR`   | 模拟适配器(调试用) |
 
 支持的广告类型：Banner、插屏、激励视频、自定义广告
 
@@ -35,7 +35,8 @@ MiniGame 文件夹是一个**通用的小游戏功能组件库**，为 Unity 项
 
 统一的构建菜单入口，覆盖所有小游戏目标平台：
 
-- **自动管理 Scripting Defines**: 构建微信或抖音小游戏时，构建管线会自动配置 `WEIXINMINIGAME` / `DOUYINMINIGAME` 宏，并在构建结束后完美还原，绝不污染编辑器的日常开发环境。
+- **物理级 SDK 热插拔隔离 (Platform Switcher)**: 提供右上角的 Platform Switcher 下拉框。一键切换平台时，自动将其他平台不相关的 SDK 移动到存档目录，彻底解决不同 SDK 间的同级编译冲突，同时自动为您配置 `Build Target` 和 `Scripting Define Symbols`。
+- **智能动态构建菜单**: 构建菜单会根据当前通过 Platform Switcher 激活的平台进行“智能隐身”，只显示当前平台的构建选项，防止跨平台交叉构建导致的严重污染。
 - **微信小游戏**：微信 Provider + WebGL 构建
 - **抖音小游戏**：默认 Provider + WebGL 构建
 - **WebGL**：发布设置优化 + Addressables + Player 构建
@@ -45,11 +46,12 @@ MiniGame 文件夹是一个**通用的小游戏功能组件库**，为 Unity 项
 ### 2.3 小游戏工具包 (MiniGameKit)
 
 微信/抖音平台通用功能封装，具备极高的鲁棒性：
+
 - **生命周期订阅**: 提供 `MiniGameKit.OnMiniGameShow` 和 `MiniGameKit.OnMiniGameHide` 事件，使业务层可轻松监听前后台切换。
 - **参数化分享 (ShareApp)**: 支持动态注入 `query` 参数进行渠道跟踪。
 - **自定义 Banner (CreateBannerAd)**: 支持动态指定 Banner 广告的位置（left, top）和尺寸（width, height），避免硬编码。
 - **参数化客服与场景 (OpenBusinessView)**: 统一且高度参数化的特定微信业务场景打开接口。
-- **对称式振动接口**: 
+- **对称式振动接口**:
   - `VibrateShort()`: 短震动反馈（触觉轻微反馈）。
   - `VibrateLong()`: 长震动反馈（触觉强烈反馈）。
   - 完美适配微信、抖音、原生 Web、Android 和 iOS。
@@ -61,8 +63,9 @@ MiniGame 文件夹是一个**通用的小游戏功能组件库**，为 Unity 项
 - **本地化** (`Tools/Minigame/本地化/`)：导入 I2 CSV、自动绑定 Localize
 - **UI** (`Tools/Minigame/UI/`)：Text 转 TextMeshPro
 - **字体** (`Tools/Minigame/字体/`)：字符集收集与导出
-- **广告** (`Tools/Minigame/广告/`)：管理器调试、平台宏定义
-- **构建** (`Tools/Minigame/构建/`)：多平台构建、Addressables、优化
+- **广告** (`Tools/Minigame/广告/`)：管理器调试
+- **平台切换** (Editor 工具栏右上角)：Platform Switcher 下拉框
+- **构建** (`Tools/Minigame/构建/`)：动态多平台构建、Addressables、优化
 - **Android** (`Tools/Minigame/Android/`)：签名配置
 - **脚本** (`Tools/Minigame/脚本/`)：C# 转 UTF-8
 - **工具** (`Tools/Minigame/工具/`)：清理 PlayerPrefs 等调试工具
@@ -103,12 +106,13 @@ Packages/MiniGameKit/
 │           ├── WebAdAdapter.cs      # Web/H5
 │           └── MobileAdAdapter.cs   # Android/iOS
 └── Editor/                          # Editor程序集 (MiniGameKit.Editor)
+    ├── PlatformSwitcher/            # 物理级平台隔离
+    │   └── PlatformSwitchTool.cs    # 核心热插拔逻辑
     ├── Ad/                          # 广告Editor工具
-    │   ├── AdManagerEditorWindow.cs # 调试窗口
-    │   └── AdDefineSymbols.cs       # 宏定义管理
+    │   └── AdManagerEditorWindow.cs # 调试窗口
     └── Build/                       # 构建工具
-        ├── MiniGameBuildMenu.cs     # 多平台构建菜单入口
-        ├── MiniGameBuildPipeline.cs # 构建管线核心逻辑 (带自动宏配置)
+        ├── MiniGameBuildMenu.cs     # 动态多平台构建菜单
+        ├── MiniGameBuildPipeline.cs # 构建管线核心逻辑
         ├── MiniGameBuildWindow.cs   # 统一构建配置窗口
         ├── WebGLCiBuild.cs          # WebGL构建流程
         └── AddressablesWeChatBuildMenu.cs  # Addressables Provider管理
@@ -125,9 +129,9 @@ Packages/MiniGameKit/
 - **适配器模式**：每个平台独立实现适配器，新增平台无需修改已有代码
 - **工厂模式**：`AdAdapterFactory` 根据平台创建适配器，业务层无需关心平台细节
 
-### 4.2 宏隔离
+### 4.2 物理级 SDK 隔离与宏定义
 
-平台特有代码通过 Unity Scripting Define Symbols 完全隔离：
+平台特有代码不仅通过 Unity Scripting Define Symbols 隔离，更通过 **Platform Switcher** 实现了物理文件的热插拔隔离（未选中的 SDK 将被移至项目根目录的 `SDKs/` 存档文件夹）：
 
 ```csharp
 #if WEIXINMINIGAME    // 微信小游戏
@@ -138,7 +142,7 @@ Packages/MiniGameKit/
 #if UNITY_EDITOR      // Editor
 ```
 
-未定义宏的平台代码不参与编译，零运行时开销。
+配合物理隔离，未激活的平台 SDK 代码根本不会出现在 `Assets` 下，彻底解决底层插件冲突与编译时报错，实现真正的“零时开销”。
 
 ### 4.3 生命周期安全
 
@@ -159,11 +163,11 @@ Packages/MiniGameKit/
 
 ### 5.2 命名规范
 
-| 类别 | 规范 | 示例 |
-|------|------|------|
-| 枚举 | Ad前缀 + 语义 | `AdPlatform`, `AdType`, `AdState` |
-| 接口 | I前缀 + 语义 | `IAdUnit`, `IAdAdapter`, `IBannerAdUnit` |
-| 适配器 | 平台名 + AdAdapter | `WeChatAdAdapter`, `DouyinAdAdapter` |
+| 类别     | 规范                 | 示例                                      |
+| -------- | -------------------- | ----------------------------------------- |
+| 枚举     | Ad前缀 + 语义        | `AdPlatform`, `AdType`, `AdState`         |
+| 接口     | I前缀 + 语义         | `IAdUnit`, `IAdAdapter`, `IBannerAdUnit`  |
+| 适配器   | 平台名 + AdAdapter   | `WeChatAdAdapter`, `DouyinAdAdapter`      |
 | MenuItem | Tools/Minigame/分类/ | `Tools/Minigame/构建/微信小游戏/本地构建` |
 
 ### 5.3 文件头注释
@@ -173,9 +177,6 @@ Packages/MiniGameKit/
 ```csharp
 /****************************************************
  * FileName:        {文件名}
- * CompanyName:     苏州微游科技有限公司
- * Author:          {作者}
- * Email:           {邮箱}
  * CreateTime:      {创建时间}
  * Version:         {版本}
  * UnityVersion:    {Unity版本}
@@ -187,6 +188,7 @@ Packages/MiniGameKit/
 ### 5.4 扩展规范
 
 新增平台适配器：
+
 1. 在 `AdPlatform` 枚举新增值
 2. 实现 `IAdAdapter` 接口和各广告类型 `IAdUnit` 内部类
 3. 在 `AdAdapterFactory` 注册创建函数
@@ -194,7 +196,8 @@ Packages/MiniGameKit/
 5. 在 `MiniGameKit.Editor.asmdef` 添加必要引用
 
 新增构建平台：
-1. 在 `MiniGameBuildMenu` 添加 MenuItem 入口
+
+1. 在 `MiniGameBuildMenu` 添加带有条件编译 (`#if MACRO`) 的动态 MenuItem 入口
 2. 遵循 统一流程：切换Provider → 构建Addressables → BuildPlayer → 结果弹窗
 
 ### 5.5 版本控制

@@ -1,24 +1,28 @@
-﻿/****************************************************
- * FileName:		MobileAdAdapter
+/****************************************************
+ * FileName:		MobilePlatform
  * CompanyName:		苏州微游科技有限公司
  * Author:			Felix/李康康
  * Email:			kangkang.li@outlook.com
- * CreateTime:		2026-05-18 10:00:00
+ * CreateTime:		2026-06-01 10:00:00
  * Version:			1.0
  * UnityVersion:	2022.3.43f1c1
- * Description:		移动端(安卓/iOS)广告适配器，通过原生插件调用
+ * Description:		移动端(安卓/iOS)大一统SDK，原生插件调用
  *
-*****************************************************/
+ *****************************************************/
 
+#if UNITY_ANDROID || UNITY_IOS
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-public class MobileAdAdapter : IAdAdapter
+public class MobilePlatform : IPlatformSDK
 {
     public AdPlatform Platform => GetCurrentPlatform();
     public string PlatformName => IsAndroid() ? "Android" : "iOS";
     public bool IsInitialized { get; private set; }
+
+    public event Action OnShow;
+    public event Action OnHide;
 
     private static bool IsAndroid()
     {
@@ -51,12 +55,14 @@ public class MobileAdAdapter : IAdAdapter
 
     public void Initialize()
     {
-#if UNITY_ANDROID || UNITY_IOS
         IsInitialized = true;
-        Debug.Log($"[Ad] {PlatformName}广告适配器初始化完成");
-#else
-        Debug.LogWarning("[Ad] 当前非移动端平台，移动端广告适配器不可用");
-#endif
+        Debug.Log($"[MobilePlatform] {PlatformName}大一统SDK初始化完成");
+        NativeInit();
+    }
+
+    public void Destroy()
+    {
+        Dispose();
     }
 
     public void Dispose()
@@ -64,9 +70,52 @@ public class MobileAdAdapter : IAdAdapter
         IsInitialized = false;
     }
 
+    #region IMiniGamePlatform 实现
+
+    public void GetBannerRect(int defaultLeft, int defaultTop, int defaultWidth, int defaultHeight, out int left, out int top, out int width, out int height)
+    {
+        left = defaultLeft;
+        top = defaultTop;
+        width = defaultWidth;
+        height = defaultHeight;
+    }
+
+    public void ShareApp(string title, string query)
+    {
+        Debug.Log($"[MobilePlatform] 模拟原生分享 App: title={title}, query={query}");
+    }
+
+    public void OpenCustomerService()
+    {
+        Debug.LogWarning("[MobilePlatform] 移动端暂未对接客服接口");
+    }
+
+    public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)
+    {
+        fail?.Invoke("Not supported on Mobile");
+    }
+
+    public void VibrateShort()
+    {
+        Handheld.Vibrate();
+    }
+
+    public void VibrateLong()
+    {
+        Handheld.Vibrate();
+    }
+
+    public void ReportGameStart()
+    {
+        Debug.Log("[MobilePlatform] 模拟上报游戏开始");
+    }
+
+    #endregion
+
+    #region IAdAdapter 实现
+
     public IAdUnit CreateAd(AdType type, string adUnitId)
     {
-#if UNITY_ANDROID || UNITY_IOS
         switch (type)
         {
             case AdType.Banner:
@@ -80,22 +129,13 @@ public class MobileAdAdapter : IAdAdapter
             default:
                 return null;
         }
-#else
-        return null;
-#endif
     }
 
     public bool IsAdSupported(AdType type)
     {
-#if UNITY_ANDROID || UNITY_IOS
         return type == AdType.Banner || type == AdType.Interstitial
             || type == AdType.RewardedVideo;
-#else
-        return false;
-#endif
     }
-
-#if UNITY_ANDROID || UNITY_IOS
 
 #if UNITY_ANDROID
     private const string LIB_NAME = "adplugin";
@@ -139,45 +179,45 @@ public class MobileAdAdapter : IAdAdapter
     private static void NativeInit()
     {
 #if UNITY_ANDROID
-        AndroidAd_Init();
+        try { AndroidAd_Init(); } catch { }
 #elif UNITY_IOS
-        IOSAd_Init();
+        try { IOSAd_Init(); } catch { }
 #endif
     }
 
     private static void NativeLoad(string adType, string adUnitId)
     {
 #if UNITY_ANDROID
-        AndroidAd_Load(adType, adUnitId);
+        try { AndroidAd_Load(adType, adUnitId); } catch { }
 #elif UNITY_IOS
-        IOSAd_Load(adType, adUnitId);
+        try { IOSAd_Load(adType, adUnitId); } catch { }
 #endif
     }
 
     private static void NativeShow(string adType, string adUnitId)
     {
 #if UNITY_ANDROID
-        AndroidAd_Show(adType, adUnitId);
+        try { AndroidAd_Show(adType, adUnitId); } catch { }
 #elif UNITY_IOS
-        IOSAd_Show(adType, adUnitId);
+        try { IOSAd_Show(adType, adUnitId); } catch { }
 #endif
     }
 
     private static void NativeHide(string adType, string adUnitId)
     {
 #if UNITY_ANDROID
-        AndroidAd_Hide(adType, adUnitId);
+        try { AndroidAd_Hide(adType, adUnitId); } catch { }
 #elif UNITY_IOS
-        IOSAd_Hide(adType, adUnitId);
+        try { IOSAd_Hide(adType, adUnitId); } catch { }
 #endif
     }
 
     private static void NativeDestroy(string adType, string adUnitId)
     {
 #if UNITY_ANDROID
-        AndroidAd_Destroy(adType, adUnitId);
+        try { AndroidAd_Destroy(adType, adUnitId); } catch { }
 #elif UNITY_IOS
-        IOSAd_Destroy(adType, adUnitId);
+        try { IOSAd_Destroy(adType, adUnitId); } catch { }
 #endif
     }
 
@@ -202,9 +242,6 @@ public class MobileAdAdapter : IAdAdapter
         {
             State = AdState.Loading;
             NativeLoad(ToNativeAdType(Type), AdUnitId);
-            // Note: The native ad plugin (Android/iOS) does not report load completion back to C#.
-            // We optimistically transition to Loaded so the AdManager flow continues.
-            // A production adapter should implement native→Unity callbacks via UnitySendMessage / UnityPlayer.UnitySendMessage.
             State = AdState.Loaded;
             OnLoaded?.Invoke(this);
         }
@@ -263,5 +300,6 @@ public class MobileAdAdapter : IAdAdapter
         public void SetSize(int width, int height) { }
     }
 
-#endif
+    #endregion
 }
+#endif

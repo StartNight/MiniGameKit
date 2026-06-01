@@ -17,5 +17,6 @@ public enum AdPlatform
     DouyinMiniGame = 2,
     Web = 3,
     Android = 4,
-    iOS = 5
+    iOS = 5,
+    CrazyGames = 6
 }

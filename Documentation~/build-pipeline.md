@@ -10,9 +10,10 @@
 |-----------------|-------------|-------------------------|
 | `WeChatMiniGame` | WebGL | `WEIXINMINIGAME` |
 | `DouyinMiniGame` | WebGL | `DOUYINMINIGAME` |
-| `WebGL` | WebGL | （移除平台专属宏） |
-| `Android` | Android | （移除平台专属宏） |
-| `iOS` | iOS | （移除平台专属宏） |
+| `CrazyGames` | WebGL | `CRAZYGAMES` |
+| `WebGL` | WebGL | （无平台专属宏） |
+| `Android` | Android | （无平台专属宏） |
+| `iOS` | iOS | （无平台专属宏） |
 
 构建结束会调用 `RestoreScriptingDefines` **还原**构建前的宏列表。
 
@@ -73,21 +74,24 @@ config.OutputPath = "";               // 空则用 DefaultOutputDir
 4. 调用 `WeChatWASM.WXConvertCore.DoExport(buildWebGL: true)`（等同插件 **「生成并转换」**）  
 5. 还原宏  
 
-菜单入口：`Tools/Minigame/构建/微信小游戏/本地构建`  
+菜单入口：`Tools/Minigame/构建/构建当前平台 (微信小游戏)`  
 结果弹窗：`ShowWeChatBuildResult(bool)`，成功时显示插件配置的 `DST` 路径。
 
 ---
 
 ## 5. Editor 菜单速查
 
-| 菜单 | 说明 |
+由于引入了 SDK 物理热插拔隔离，构建菜单会**根据当前激活的平台动态显示**，防止跨平台交叉构建。
+
+| 菜单 (当前平台下可见) | 说明 |
 |------|------|
 | `Tools/Minigame/构建/构建窗口` | `MiniGameBuildWindow` 图形界面 |
-| `Tools/Minigame/构建/微信小游戏/本地构建` | `RunWeChatBuild` |
-| `Tools/Minigame/构建/抖音小游戏/本地构建` | WebGL + 抖音宏 + Addressables + BuildPlayer |
-| `Tools/Minigame/构建/Android/本地构建` | APK |
-| `Tools/Minigame/构建/Android/构建并运行` | APK + AutoRun |
-| `Tools/Minigame/构建/iOS/本地构建` | Xcode 工程目录 |
+| `Tools/Minigame/构建/构建当前平台 (微信小游戏)` | `RunWeChatBuild` (仅在切换至微信平台后可见) |
+| `Tools/Minigame/构建/构建当前平台 (抖音小游戏)` | 抖音构建逻辑 (仅在切换至抖音平台后可见) |
+| `Tools/Minigame/构建/构建当前平台 (CrazyGames - WebGL)` | CrazyGames 构建 |
+| `Tools/Minigame/构建/构建当前平台 (Android)` | APK 构建 |
+| `Tools/Minigame/构建/构建并运行当前平台 (Android)` | APK + AutoRun |
+| `Tools/Minigame/构建/构建当前平台 (iOS)` | Xcode 工程目录构建 |
 | `Tools/Minigame/构建/诊断当前构建环境` | 平台、场景数、Provider 状态 |
 | `Tools/Minigame/构建/一键性能护航构建 (微信小游戏)` | 见下文 |
 

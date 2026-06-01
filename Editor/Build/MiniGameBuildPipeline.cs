@@ -1,4 +1,4 @@
-﻿/****************************************************
+/****************************************************
  * FileName:		MiniGameBuildPipeline
  * CompanyName:		苏州微游科技有限公司
  * Author:			Felix/李康康
@@ -302,6 +302,7 @@ namespace MiniGameKit.Editor
                 OnProgress?.Invoke(0.4f, "执行微信小游戏「生成并转换」...");
                 Log("调用 WXConvertCore.DoExport()（等同于插件面板「生成并转换」）");
 
+#if WEIXINMINIGAME
 #if TUANJIE_1_9_OR_NEWER
                 WeChatWASM.WXConvertCore.RefreshEnableRenderThread();
 #endif
@@ -314,6 +315,10 @@ namespace MiniGameKit.Editor
                     LogError($"微信小游戏「生成并转换」失败，错误码: {exportError}，请查看 Console。");
                     return false;
                 }
+#else
+                LogError("未检测到 WEIXINMINIGAME 宏，无法调用微信打包。请先通过 Platform Switcher 切换到微信小游戏。");
+                return false;
+#endif
 
                 Log("微信小游戏「生成并转换」完成");
                 var artifactDir = BuildArtifactPaths.ResolveArtifactDirectory(BuildPlatform.WeChatMiniGame, config);
@@ -524,7 +529,11 @@ namespace MiniGameKit.Editor
         {
             if (succeeded)
             {
+#if WEIXINMINIGAME
                 var dstPath = WeChatWASM.WXConvertCore.config?.ProjectConf?.DST ?? "（请查看微信小游戏插件配置中的导出路径）";
+#else
+                var dstPath = "（请查看微信小游戏插件配置中的导出路径）";
+#endif
                 EditorUtility.DisplayDialog("微信小游戏 构建完成",
                     $"生成并转换已完成。\n导出目录：\n{dstPath}\n\n请用微信开发者工具打开该目录。",
                     "确定");

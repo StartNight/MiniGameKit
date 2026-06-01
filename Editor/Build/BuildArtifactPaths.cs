@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 
 using System;
 using System.IO;
@@ -22,9 +22,11 @@ namespace MiniGameKit.Editor
             switch (platform)
             {
                 case BuildPlatform.WeChatMiniGame:
+#if WEIXINMINIGAME
                     var dst = WeChatWASM.WXConvertCore.config?.ProjectConf?.DST;
                     if (!string.IsNullOrEmpty(dst))
                         return Path.GetFullPath(dst);
+#endif
                     return Path.GetFullPath(
                         Path.Combine(MiniGameKitEditorPaths.ProjectRoot, config.DefaultOutputDir));
 

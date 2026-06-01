@@ -57,11 +57,7 @@
 
 | 菜单 | 类 | 说明 |
 |------|-----|------|
-| `Tools/Minigame/广告/平台/启用微信小游戏广告` | `AdDefineSymbols` | 添加 `WEIXINMINIGAME` |
-| `Tools/Minigame/广告/平台/禁用微信小游戏广告` | | 移除 |
-| `Tools/Minigame/广告/平台/启用抖音小游戏广告` | | 添加 `DOUYINMINIGAME` |
-| `Tools/Minigame/广告/平台/禁用抖音小游戏广告` | | 移除 |
-| `Tools/Minigame/广告/平台/查看当前宏定义` | | Debug.Log 各 BuildTargetGroup |
+| `Editor 工具栏右上角 / Platform Switcher` | `PlatformSwitchTool` | 下拉框切换平台，自动隔离其他 SDK 物理文件，并同步更新 Build Target 与宏定义 |
 | `Tools/Minigame/广告/广告管理器调试` | `AdManagerEditorWindow` | Play Mode 下测试 Banner/插屏/激励视频 |
 
 ---
@@ -73,12 +69,8 @@
 | 菜单 | 说明 |
 |------|------|
 | `构建/构建窗口` | 图形化 `BuildConfig` |
-| `构建/微信小游戏/本地构建` | 生成并转换 |
-| `构建/微信小游戏/应用加载页配置` | 加载页 patch |
-| `构建/抖音小游戏/本地构建` | WebGL 抖音包 |
-| `构建/Android/本地构建` | APK |
-| `构建/Android/构建并运行` | APK + 运行 |
-| `构建/iOS/本地构建` | Xcode 工程 |
+| `构建/构建当前平台 (...)` | 根据 Platform Switcher 激活的平台动态显示本地构建选项 |
+| `构建/构建并运行当前平台 (Android)` | APK + 运行 (仅限 Android 平台可见) |
 | `构建/诊断当前构建环境` | 环境诊断 |
 | `构建/一键性能护航构建 (微信小游戏)` | 优化 + Addressables |
 | `构建/优化/剥离 TrueShadow...` | UI 性能 |

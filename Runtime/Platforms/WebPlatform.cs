@@ -1,33 +1,38 @@
 /****************************************************
- * FileName:		WebAdAdapter
+ * FileName:		WebPlatform
  * CompanyName:		苏州微游科技有限公司
  * Author:			Felix/李康康
  * Email:			kangkang.li@outlook.com
- * CreateTime:		2026-05-18 10:00:00
+ * CreateTime:		2026-06-01 10:00:00
  * Version:			1.0
  * UnityVersion:	2022.3.43f1c1
- * Description:		Web平台广告适配器，通过JS插件调用Web广告SDK
+ * Description:		Web平台SDK(大一统接口实现)，包含JS插件调用
  *
-*****************************************************/
+ *****************************************************/
 
+#if UNITY_WEBGL && !WEIXINMINIGAME && !DOUYINMINIGAME && !CRAZYGAMES
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-public class WebAdAdapter : IAdAdapter
+public class WebPlatform : IPlatformSDK
 {
     public AdPlatform Platform => AdPlatform.Web;
     public string PlatformName => "Web(H5)";
     public bool IsInitialized { get; private set; }
 
+    public event Action OnShow;
+    public event Action OnHide;
+
     public void Initialize()
     {
-#if UNITY_WEBGL && !WEIXINMINIGAME && !DOUYINMINIGAME
         IsInitialized = true;
-        Debug.Log("[Ad] Web广告适配器初始化完成");
-#else
-        Debug.LogWarning("[Ad] 当前非WebGL平台，Web广告适配器不可用");
-#endif
+        Debug.Log("[WebPlatform] Web大一统SDK初始化完成");
+    }
+
+    public void Destroy()
+    {
+        Dispose();
     }
 
     public void Dispose()
@@ -35,9 +40,52 @@ public class WebAdAdapter : IAdAdapter
         IsInitialized = false;
     }
 
+    #region IMiniGamePlatform 实现
+
+    public void GetBannerRect(int defaultLeft, int defaultTop, int defaultWidth, int defaultHeight, out int left, out int top, out int width, out int height)
+    {
+        left = defaultLeft;
+        top = defaultTop;
+        width = defaultWidth;
+        height = defaultHeight;
+    }
+
+    public void ShareApp(string title, string query)
+    {
+        Debug.Log($"[WebPlatform] 模拟分享 App: title={title}, query={query}");
+    }
+
+    public void OpenCustomerService()
+    {
+        Debug.LogWarning("[WebPlatform] 平台暂不支持打开客服");
+    }
+
+    public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)
+    {
+        fail?.Invoke("Not supported on Web");
+    }
+
+    public void VibrateShort()
+    {
+        Debug.Log("[WebPlatform] 模拟短震动");
+    }
+
+    public void VibrateLong()
+    {
+        Debug.Log("[WebPlatform] 模拟长震动");
+    }
+
+    public void ReportGameStart()
+    {
+        Debug.Log("[WebPlatform] 模拟上报游戏开始");
+    }
+
+    #endregion
+
+    #region IAdAdapter 实现
+
     public IAdUnit CreateAd(AdType type, string adUnitId)
     {
-#if UNITY_WEBGL && !WEIXINMINIGAME && !DOUYINMINIGAME
         switch (type)
         {
             case AdType.Banner:
@@ -51,21 +99,12 @@ public class WebAdAdapter : IAdAdapter
             default:
                 return null;
         }
-#else
-        return null;
-#endif
     }
 
     public bool IsAdSupported(AdType type)
     {
-#if UNITY_WEBGL && !WEIXINMINIGAME && !DOUYINMINIGAME
         return true;
-#else
-        return false;
-#endif
     }
-
-#if UNITY_WEBGL && !WEIXINMINIGAME && !DOUYINMINIGAME
 
     [DllImport("__Internal")]
     private static extern void WebAd_Init();
@@ -112,8 +151,6 @@ public class WebAdAdapter : IAdAdapter
         {
             State = AdState.Loading;
             WebAd_Load(ToJsAdType(Type), AdUnitId);
-            // Note: The JS plugin (__Internal) does not report load completion back to C#.
-            // We optimistically transition to Loaded so the AdManager flow continues.
             State = AdState.Loaded;
             OnLoaded?.Invoke(this);
         }
@@ -175,5 +212,6 @@ public class WebAdAdapter : IAdAdapter
         public void SetSize(int width, int height) { }
     }
 
-#endif
+    #endregion
 }
+#endif

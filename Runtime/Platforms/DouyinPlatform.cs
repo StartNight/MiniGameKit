@@ -1,46 +1,105 @@
-﻿/****************************************************
- * FileName:		DouyinAdAdapter
- * CompanyName:		苏州微游科技有限公司
- * Author:			Felix/李康康
- * Email:			kangkang.li@outlook.com
- * CreateTime:		2026-05-18 10:00:00
- * Version:			1.0
- * UnityVersion:	2022.3.43f1c1
- * Description:		抖音小游戏平台广告适配器
- *
-*****************************************************/
-
 using System;
 using UnityEngine;
 
 #if DOUYINMINIGAME
 using TTSDK;
-#endif
+using TTSDK.UNBridgeLib.LitJson;
 
-public class DouyinAdAdapter : IAdAdapter
+public class DouyinPlatform : IPlatformSDK
 {
     public AdPlatform Platform => AdPlatform.DouyinMiniGame;
     public string PlatformName => "抖音小游戏";
     public bool IsInitialized { get; private set; }
 
+    public event Action OnShow;
+    public event Action OnHide;
+
+    private Action<TTSDK.OnShowResult> _onShowDelegate;
+    private Action<TTSDK.OnHideResult> _onHideDelegate;
+
     public void Initialize()
     {
-#if DOUYINMINIGAME
+        TT.InitSDK();
         IsInitialized = true;
-        Debug.Log("[Ad] 抖音小游戏广告适配器初始化完成");
-#else
-        Debug.LogWarning("[Ad] 当前未定义DOUYINMINIGAME宏，抖音广告适配器不可用");
+        Debug.Log("[DouyinPlatform] 抖音大一统SDK初始化完成");
+
+#if !UNITY_EDITOR
+        TT.ShowShareMenu();
 #endif
+        _onShowDelegate = (res) => { OnShow?.Invoke(); };
+        _onHideDelegate = (res) => { OnHide?.Invoke(); };
+        TT.OnShow(_onShowDelegate);
+        TT.OnHide(_onHideDelegate);
+    }
+
+    public void Destroy()
+    {
+        Dispose();
     }
 
     public void Dispose()
     {
         IsInitialized = false;
+        // Douyin SDK might not have OffShow/OffHide exposed
     }
+
+    #region IMiniGamePlatform 实现
+
+    public void GetBannerRect(int defaultLeft, int defaultTop, int defaultWidth, int defaultHeight, out int left, out int top, out int width, out int height)
+    {
+        left = defaultLeft;
+        top = defaultTop;
+        width = defaultWidth;
+        height = defaultHeight;
+    }
+
+    public void ShareApp(string title, string query)
+    {
+        JsonData shareJson = new JsonData();
+        shareJson["title"] = title;
+        shareJson["query"] = query;
+
+        TT.ShareAppMessage(shareJson, 
+            (data) => { Debug.Log("[DouyinPlatform] 抖音分享成功"); },
+            (errMsg) => { Debug.LogWarning($"[DouyinPlatform] 抖音分享失败: {errMsg}"); },
+            () => { Debug.Log("[DouyinPlatform] 抖音分享取消"); });
+    }
+
+    public void OpenCustomerService()
+    {
+        // 抖音无此明确对应接口
+    }
+
+    public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)
+    {
+        // 抖音无此明确对应接口
+        fail?.Invoke("Not supported on Douyin");
+    }
+
+    public void VibrateShort()
+    {
+        TT.VibrateShort(new TTSDK.VibrateShortOption()
+        {
+            type = "heavy"
+        });
+    }
+
+    public void VibrateLong()
+    {
+        TT.VibrateLong(new TTSDK.VibrateLongOption());
+    }
+
+    public void ReportGameStart()
+    {
+        // 抖音无此明确对应接口
+    }
+
+    #endregion
+
+    #region IAdAdapter 实现
 
     public IAdUnit CreateAd(AdType type, string adUnitId)
     {
-#if DOUYINMINIGAME
         switch (type)
         {
             case AdType.Banner:
@@ -52,25 +111,16 @@ public class DouyinAdAdapter : IAdAdapter
             case AdType.Custom:
                 return new DouyinCustomAdUnit(adUnitId);
             default:
-                Debug.LogWarning($"[Ad-Douyin] 不支持的广告类型: {type}");
+                Debug.LogWarning($"[DouyinPlatform] 不支持的广告类型: {type}");
                 return null;
         }
-#else
-        return null;
-#endif
     }
 
     public bool IsAdSupported(AdType type)
     {
-#if DOUYINMINIGAME
         return type == AdType.Banner || type == AdType.Interstitial
             || type == AdType.RewardedVideo || type == AdType.Custom;
-#else
-        return false;
-#endif
     }
-
-#if DOUYINMINIGAME
 
     private class DouyinBannerAdUnit : IBannerAdUnit
     {
@@ -133,16 +183,8 @@ public class DouyinAdAdapter : IAdAdapter
             State = AdState.Loaded;
         }
 
-        public void SetPosition(int left, int top)
-        {
-            // TODO: TT SDK does not expose banner position change after creation.
-            // If CreateBannerAdParam supports style, set it during Load().
-        }
-
-        public void SetSize(int width, int height)
-        {
-            // TODO: TT SDK does not expose banner resize after creation.
-        }
+        public void SetPosition(int left, int top) { }
+        public void SetSize(int width, int height) { }
 
         public void Dispose()
         {
@@ -248,14 +290,12 @@ public class DouyinAdAdapter : IAdAdapter
             _rewardedVideoAd.OnLoad += () =>
             {
                 State = AdState.Loaded;
-                Debug.Log("[Ad-Douyin] 激励视频加载成功");
                 OnLoaded?.Invoke(this);
             };
 
             _rewardedVideoAd.OnError += (code, msg) =>
             {
                 State = AdState.Error;
-                Debug.LogError($"[Ad-Douyin] 激励视频错误: code={code}");
                 OnError?.Invoke(this, $"code:{code} msg:{msg}");
             };
 
@@ -306,7 +346,6 @@ public class DouyinAdAdapter : IAdAdapter
 
         public void Load()
         {
-            // TT SDK has no "Custom Ad" type. This is a stub for interface compatibility.
             State = AdState.Loaded;
             OnLoaded?.Invoke(this);
         }
@@ -323,5 +362,6 @@ public class DouyinAdAdapter : IAdAdapter
         }
     }
 
-#endif
+    #endregion
 }
+#endif

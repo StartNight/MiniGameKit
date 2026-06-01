@@ -1,4 +1,4 @@
-﻿/****************************************************
+/****************************************************
  * FileName:		AdManager
  * CompanyName:		苏州微游科技有限公司
  * Author:			Felix/李康康
@@ -35,7 +35,7 @@ public class AdManager : MonoBehaviour
     public bool IsInitialized { get; private set; }
     public AdConfig Config { get; private set; }
 
-    private IAdAdapter _adapter;
+    public IPlatformSDK PlatformSDK { get; private set; }
     private readonly Dictionary<string, IAdUnit> _adUnits = new Dictionary<string, IAdUnit>();
     private bool _isDestroyed;
 
@@ -48,8 +48,8 @@ public class AdManager : MonoBehaviour
         Config = config ?? new AdConfig();
         CurrentPlatform = Config.CurrentPlatform != default ? Config.CurrentPlatform : AdPlatformDetector.Detect();
 
-        _adapter = AdAdapterFactory.Create(CurrentPlatform);
-        _adapter.Initialize();
+        PlatformSDK = PlatformSDKFactory.Create(CurrentPlatform);
+        PlatformSDK.Initialize();
 
         IsInitialized = true;
         OnPlatformChanged?.Invoke(CurrentPlatform);
@@ -64,8 +64,8 @@ public class AdManager : MonoBehaviour
         Config = config ?? new AdConfig();
         CurrentPlatform = targetPlatform;
 
-        _adapter = AdAdapterFactory.Create(CurrentPlatform);
-        _adapter.Initialize();
+        PlatformSDK = PlatformSDKFactory.Create(CurrentPlatform);
+        PlatformSDK.Initialize();
 
         IsInitialized = true;
         OnPlatformChanged?.Invoke(CurrentPlatform);
@@ -93,7 +93,7 @@ public class AdManager : MonoBehaviour
             return null;
         }
 
-        if (!_adapter.IsAdSupported(type))
+        if (!PlatformSDK.IsAdSupported(type))
         {
             Debug.LogWarning($"[AdManager] 当前平台 {CurrentPlatform} 不支持 {type} 广告");
             return null;
@@ -131,7 +131,7 @@ public class AdManager : MonoBehaviour
             _adUnits.Remove(cacheKey);
         }
 
-        var adUnit = _adapter.CreateAd(type, adUnitId);
+        var adUnit = PlatformSDK.CreateAd(type, adUnitId);
         if (adUnit == null)
         {
             Debug.LogError($"[AdManager] 创建广告失败: type={type}, adUnitId={adUnitId}");
@@ -314,7 +314,7 @@ public class AdManager : MonoBehaviour
             if (type == AdType.Custom) continue;
 
             var adUnitId = Config.GetAdUnitId(type, CurrentPlatform);
-            if (!string.IsNullOrEmpty(adUnitId) && _adapter.IsAdSupported(type))
+            if (!string.IsNullOrEmpty(adUnitId) && PlatformSDK.IsAdSupported(type))
             {
                 LoadAd(type, adUnitId);
             }
@@ -348,7 +348,7 @@ public class AdManager : MonoBehaviour
         }
         _adUnits.Clear();
 
-        _adapter?.Dispose();
+        PlatformSDK?.Dispose();
         IsInitialized = false;
 
         if (_instance == this)

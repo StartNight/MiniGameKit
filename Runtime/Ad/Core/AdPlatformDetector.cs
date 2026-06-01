@@ -1,4 +1,4 @@
-﻿/****************************************************
+/****************************************************
  * FileName:		AdPlatformDetector
  * CompanyName:		苏州微游科技有限公司
  * Author:			Felix/李康康
@@ -27,6 +27,8 @@ public static class AdPlatformDetector
 
 #if UNITY_EDITOR
         return AdPlatform.Editor;
+#elif CRAZYGAMES
+        return AdPlatform.CrazyGames;
 #elif WEIXINMINIGAME
         return AdPlatform.WeChatMiniGame;
 #elif DOUYINMINIGAME
@@ -36,6 +38,13 @@ public static class AdPlatformDetector
         // 检测到 WX SDK 存在时优先使用微信适配器（兼容 WX 插件导出路径）。
         if (IsWXRuntimePresent())
             return AdPlatform.WeChatMiniGame;
+        
+#if CRAZYGAMES
+        // 检测 CrazySDK 是否可用
+        if (CrazyGames.CrazySDK.IsAvailable)
+            return AdPlatform.CrazyGames;
+#endif
+
         return AdPlatform.Web;
 #elif UNITY_ANDROID
         return AdPlatform.Android;
@@ -72,6 +81,7 @@ public static class AdPlatformDetector
             AdPlatform.Web => "Web(H5)",
             AdPlatform.Android => "Android",
             AdPlatform.iOS => "iOS",
+            AdPlatform.CrazyGames => "CrazyGames",
             _ => "未知"
         };
     }
