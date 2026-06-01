@@ -16,7 +16,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace MGKEditor
+namespace MiniGameKit.Editor
 {
     /// <summary>
     /// 通过 Unity 内部 Toolbar 类的 rootVisualElement 属性安全注入自定义 IMGUI 控件。

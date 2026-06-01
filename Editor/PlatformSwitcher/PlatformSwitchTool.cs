@@ -16,7 +16,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace MGKEditor
+namespace MiniGameKit.Editor
 {
     [InitializeOnLoad]
     public static class PlatformSwitchTool
