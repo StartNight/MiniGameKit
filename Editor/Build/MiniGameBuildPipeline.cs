@@ -296,23 +296,19 @@ namespace MGKit.Editor
                 OnProgress?.Invoke(0.4f, "执行微信小游戏「生成并转换」...");
                 Log("调用 WXConvertCore.DoExport()（等同于插件面板「生成并转换」）");
 
-#if WEIXINMINIGAME
-#if TUANJIE_1_9_OR_NEWER
-                WeChatWASM.WXConvertCore.RefreshEnableRenderThread();
-#endif
-                var exportError = WeChatWASM.WXConvertCore.DoExport(buildWebGL: true);
+                if (!TryRunWeChatExport(out var exportError))
+                {
+                    LogError("未检测到微信导出 API（WXConvertCore），请确认已安装并启用微信小游戏插件。");
+                    return false;
+                }
 
                 OnProgress?.Invoke(1f, "构建完成");
 
-                if (exportError != WeChatWASM.WXConvertCore.WXExportError.SUCCEED)
+                if (!string.Equals(exportError, "SUCCEED", StringComparison.OrdinalIgnoreCase))
                 {
                     LogError($"微信小游戏「生成并转换」失败，错误码: {exportError}，请查看 Console。");
                     return false;
                 }
-#else
-                LogError("未检测到 WEIXINMINIGAME 宏，无法调用微信打包。请先通过 Platform Switcher 切换到微信小游戏。");
-                return false;
-#endif
 
                 Log("微信小游戏「生成并转换」完成");
                 var artifactDir = BuildArtifactPaths.ResolveArtifactDirectory(MiniGamePlatform.WeChatMiniGame, config);
@@ -555,6 +551,31 @@ namespace MGKit.Editor
             sb.AppendLine("Addressables: 未安装 (com.unity.addressables)");
 #endif
             Debug.Log(sb.ToString());
+        }
+
+        /// <summary>
+        /// 通过反射调用微信导出 API，避免依赖编译期宏 WEIXINMINIGAME。
+        /// </summary>
+        static bool TryRunWeChatExport(out string exportError)
+        {
+            exportError = "UNKNOWN";
+            var wxConvertCoreType = Type.GetType("WeChatWASM.WXConvertCore, Assembly-CSharp-Editor")
+                ?? Type.GetType("WeChatWASM.WXConvertCore");
+            if (wxConvertCoreType == null)
+                return false;
+
+            var refreshMethod = wxConvertCoreType.GetMethod("RefreshEnableRenderThread",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            refreshMethod?.Invoke(null, null);
+
+            var doExportMethod = wxConvertCoreType.GetMethod("DoExport",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (doExportMethod == null)
+                return false;
+
+            var result = doExportMethod.Invoke(null, new object[] { true });
+            exportError = result?.ToString() ?? "NULL";
+            return true;
         }
     }
 }
