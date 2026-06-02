@@ -298,8 +298,21 @@ namespace MGKit.Editor
 
                 if (!TryRunWeChatExport(out var exportError))
                 {
-                    LogError("未检测到微信导出 API（WXConvertCore），请确认已安装并启用微信小游戏插件。");
-                    return false;
+                    Log("未检测到微信导出 API（WXConvertCore），回退为标准 WebGL 构建流程。");
+                    var fallbackOutputPath = string.IsNullOrEmpty(config.OutputPath)
+                        ? ResolveOutputPath(config, BuildTarget.WebGL)
+                        : config.OutputPath;
+                    if (!TryRunWebGLFallbackBuild(fallbackOutputPath))
+                    {
+                        LogError("WebGL 回退构建失败。");
+                        return false;
+                    }
+
+                    OnProgress?.Invoke(1f, "构建完成（WebGL 回退）");
+                    var fallbackArtifactDir = BuildArtifactPaths.ResolveArtifactDirectory(MiniGamePlatform.WeChatMiniGame, config);
+                    BuildArtifactPaths.WriteCiOutputMarker(MiniGamePlatform.WeChatMiniGame, fallbackArtifactDir);
+                    BuildCiManifest.Write(MiniGamePlatform.WeChatMiniGame, fallbackArtifactDir);
+                    return true;
                 }
 
                 OnProgress?.Invoke(1f, "构建完成");
@@ -576,6 +589,28 @@ namespace MGKit.Editor
             var result = doExportMethod.Invoke(null, new object[] { true });
             exportError = result?.ToString() ?? "NULL";
             return true;
+        }
+
+        static bool TryRunWebGLFallbackBuild(string outputPath)
+        {
+            var scenes = GetEnabledScenes();
+            if (scenes == null || scenes.Length == 0)
+                return false;
+
+            var outputDir = Path.GetDirectoryName(Path.GetFullPath(outputPath));
+            if (!string.IsNullOrEmpty(outputDir))
+                Directory.CreateDirectory(outputDir);
+
+            var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = scenes,
+                target = BuildTarget.WebGL,
+                targetGroup = BuildTargetGroup.WebGL,
+                locationPathName = outputPath,
+                options = BuildOptions.None
+            });
+
+            return report != null && report.summary.result == BuildResult.Succeeded;
         }
     }
 }
