@@ -13,12 +13,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+
 namespace MGKit
 {
-
-public static class PlatformSDKFactory
-{
-    private static readonly Dictionary<MiniGamePlatform, Func<IPlatformSDK>> _creators = new Dictionary<MiniGamePlatform, Func<IPlatformSDK>>()
+    public static class PlatformSDKFactory
+    {
+        private static readonly Dictionary<MiniGamePlatform, Func<IPlatformSDK>> _creators = new Dictionary<MiniGamePlatform, Func<IPlatformSDK>>()
     {
         { MiniGamePlatform.Editor, () => new EditorMockPlatform() },
 #if WEIXINMINIGAME
@@ -39,22 +39,22 @@ public static class PlatformSDKFactory
 #endif
     };
 
-    public static IPlatformSDK Create(MiniGamePlatform platform)
-    {
-        if (_creators.TryGetValue(platform, out var creator))
+        public static IPlatformSDK Create(MiniGamePlatform platform)
         {
-            var sdk = creator();
-            Debug.Log($"[PlatformSDKFactory] 创建平台SDK: {sdk.PlatformName}");
-            return sdk;
+            if (_creators.TryGetValue(platform, out var creator))
+            {
+                var sdk = creator();
+                Debug.Log($"[PlatformSDKFactory] 创建平台SDK: {sdk.PlatformName}");
+                return sdk;
+            }
+
+            Debug.LogError($"[PlatformSDKFactory] 不支持的平台: {platform}，降级为Editor模式");
+            return new EditorMockPlatform();
         }
 
-        Debug.LogError($"[PlatformSDKFactory] 不支持的平台: {platform}，降级为Editor模式");
-        return new EditorMockPlatform();
+        public static void RegisterCreator(MiniGamePlatform platform, Func<IPlatformSDK> creator)
+        {
+            _creators[platform] = creator;
+        }
     }
-
-    public static void RegisterCreator(MiniGamePlatform platform, Func<IPlatformSDK> creator)
-    {
-        _creators[platform] = creator;
-    }
-}
 }

@@ -16,7 +16,7 @@ namespace MGKit.Editor
     /// </summary>
     public class I2LocalizeAutoBindWindow : EditorWindow
     {
-        string _csvPath;
+        private string _csvPath;
 
         [MenuItem(MGKitEditorPaths.LocalizationMenu + "自动绑定 Localize 组件", false, 101)]
         public static void Open()
@@ -25,7 +25,7 @@ namespace MGKit.Editor
             w._csvPath = MGKitEditorPaths.I2CsvAssetPath;
         }
 
-        void OnGUI()
+        private void OnGUI()
         {
             EditorGUILayout.LabelField("CSV 路径", EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
@@ -100,7 +100,7 @@ namespace MGKit.Editor
             EditorUtility.DisplayDialog("完成", $"共修改 {bindCount} 个预制体/场景。", "确定");
         }
 
-        static Dictionary<string, string> LoadTextToKeyMap(string csvAssetPath)
+        private static Dictionary<string, string> LoadTextToKeyMap(string csvAssetPath)
         {
             var fullPath = MGKitEditorPaths.ToFullPath(csvAssetPath);
             if (!File.Exists(fullPath))
@@ -138,7 +138,7 @@ namespace MGKit.Editor
             return map;
         }
 
-        static bool ProcessGameObject(GameObject go, Dictionary<string, string> textToKey, Type localizeType)
+        private static bool ProcessGameObject(GameObject go, Dictionary<string, string> textToKey, Type localizeType)
         {
             var changed = false;
             foreach (var tr in go.GetComponentsInChildren<Transform>(true))
@@ -156,7 +156,7 @@ namespace MGKit.Editor
             return changed;
         }
 
-        static bool TryBind(GameObject go, string text, Dictionary<string, string> textToKey, Type localizeType)
+        private static bool TryBind(GameObject go, string text, Dictionary<string, string> textToKey, Type localizeType)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return false;

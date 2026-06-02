@@ -31,7 +31,7 @@ namespace MGKit.Editor
             }
         }
 
-        static void ImportInternal(string csvAssetPath, string languageSourceAssetPath)
+        private static void ImportInternal(string csvAssetPath, string languageSourceAssetPath)
         {
             var languageSourceAssetType = ReflectionTypeUtility.FindType("I2.Loc.LanguageSourceAsset");
             var languageSourceDataType = ReflectionTypeUtility.FindType("I2.Loc.LanguageSourceData");
@@ -78,7 +78,7 @@ namespace MGKit.Editor
             EditorUtility.DisplayDialog("导入成功", $"词条已写入：\n{languageSourceAssetPath}", "确定");
         }
 
-        static void ImportIntoSourceData(object sourceData, Type sourceDataType, Type termDataType, string csvAssetPath)
+        private static void ImportIntoSourceData(object sourceData, Type sourceDataType, Type termDataType, string csvAssetPath)
         {
             if (sourceData == null)
             {
@@ -164,7 +164,7 @@ namespace MGKit.Editor
             Debug.Log($"[I2Import] 共导入 {imported} 条词条。");
         }
 
-        static void AddLanguage(object sourceData, Type sourceDataType, string langName, string code)
+        private static void AddLanguage(object sourceData, Type sourceDataType, string langName, string code)
         {
             var addLangMethod = sourceDataType.GetMethod("AddLanguage", new[] { typeof(string), typeof(string) });
             if (addLangMethod != null)

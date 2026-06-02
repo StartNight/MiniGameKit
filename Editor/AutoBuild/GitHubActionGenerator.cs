@@ -17,7 +17,7 @@ namespace MGKit.Editor.AutoBuild
 
             var filePath = Path.Combine(githubDir, "minigame-build.yml");
             var yamlContent = GetYamlContent();
-            
+
             File.WriteAllText(filePath, yamlContent);
             Debug.Log($"[AutoBuild] 成功生成 GitHub Actions 工作流文件：{filePath}");
             AssetDatabase.Refresh();
@@ -113,12 +113,12 @@ jobs:
           git config user.email ""github-actions[bot]@users.noreply.github.com""
           git add .
           git commit -m ""Auto update build artifacts for ${{{{ env.PLATFORM }}}} from $GITHUB_SHA"" || echo ""No changes to commit""
-          
+
           # Ensure branch exists and pull latest before push to avoid conflicts
           BRANCH=""{AutoBuildConfig.SubmoduleBranch}""
           git fetch origin $BRANCH
           git checkout $BRANCH || git checkout -b $BRANCH origin/$BRANCH
-          
+
           # Push changes
           git push origin $BRANCH
 ";

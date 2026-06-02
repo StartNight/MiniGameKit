@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+
 namespace MGKit.Editor
 {
     /// <summary>
@@ -45,7 +46,7 @@ namespace MGKit.Editor
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 GameObject instance = PrefabUtility.LoadPrefabContents(path);
                 var meshColliders = instance.GetComponentsInChildren<MeshCollider>(true);
-                
+
                 if (meshColliders.Length > 0)
                 {
                     foreach (var mc in meshColliders)

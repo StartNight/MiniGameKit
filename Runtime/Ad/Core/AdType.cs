@@ -9,16 +9,14 @@
  * Description:		广告类型枚举定义
  *
 *****************************************************/
+
 namespace MGKit
 {
-
-
-public enum AdType
-{
-    Banner = 0,
-    Interstitial = 1,
-    RewardedVideo = 2,
-    Custom = 3
-}
-
+    public enum AdType
+    {
+        Banner = 0,
+        Interstitial = 1,
+        RewardedVideo = 2,
+        Custom = 3
+    }
 }

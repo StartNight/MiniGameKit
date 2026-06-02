@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.Networking;
 using Debug = UnityEngine.Debug;
 
@@ -36,7 +35,7 @@ namespace MGKit.Editor.AutoBuild
 
             var tagName = $"Build_{platform}_{DateTime.Now:yyyyMMdd_HHmmss}";
             Debug.Log($"[AutoBuild] 尝试通过打标签 (Tag) 来触发 {platform} 的构建: {tagName}");
-            
+
             var result = RunGitCommand($"tag {tagName}");
             if (result)
             {
@@ -141,7 +140,7 @@ namespace MGKit.Editor.AutoBuild
 
                 if (!string.IsNullOrWhiteSpace(output))
                     Debug.Log($"[Git] {output}");
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -150,6 +149,7 @@ namespace MGKit.Editor.AutoBuild
                 return false;
             }
         }
+
         public static string GetGitOutput(string arguments)
         {
             try
@@ -176,7 +176,7 @@ namespace MGKit.Editor.AutoBuild
                 {
                     return null;
                 }
-                
+
                 return output;
             }
             catch
@@ -191,15 +191,15 @@ namespace MGKit.Editor.AutoBuild
             if (string.IsNullOrEmpty(url)) return null;
 
             url = url.Replace(".git", "").Trim();
-            
+
             // Handle git@github.com:Owner/Repo
             int idx = url.LastIndexOf(':');
-            if (idx > 0 && url.Contains("git@")) 
+            if (idx > 0 && url.Contains("git@"))
             {
                 var parts = url.Substring(idx + 1).Split('/');
                 if (parts.Length >= 2) return $"{parts[parts.Length - 2]}/{parts[parts.Length - 1]}";
             }
-            
+
             // Handle https://github.com/Owner/Repo
             idx = url.IndexOf("github.com/");
             if (idx > 0)
@@ -207,7 +207,7 @@ namespace MGKit.Editor.AutoBuild
                 var parts = url.Substring(idx + 11).Split('/');
                 if (parts.Length >= 2) return $"{parts[0]}/{parts[1]}";
             }
-            
+
             return null;
         }
     }

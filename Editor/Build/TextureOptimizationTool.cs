@@ -1,6 +1,5 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using System.IO;
 
 namespace MGKit.Editor
 {
@@ -17,7 +16,7 @@ namespace MGKit.Editor
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
-                
+
                 if (importer != null && importer.mipmapEnabled)
                 {
                     importer.mipmapEnabled = false;

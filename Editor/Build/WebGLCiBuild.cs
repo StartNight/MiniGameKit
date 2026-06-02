@@ -17,15 +17,15 @@ namespace MGKit.Editor
     /// </remarks>
     public static class WebGLCiBuild
     {
-        static readonly string Eol = Environment.NewLine;
+        private static readonly string Eol = Environment.NewLine;
 
-        const string DefaultLocalOutputDir = "build/WebGL";
+        private const string DefaultLocalOutputDir = "build/WebGL";
 
-        const string LocalOutputPathEditorPrefKey = "MGKit.WebGLCiBuild.LocalOutputPath";
+        private const string LocalOutputPathEditorPrefKey = "MGKit.WebGLCiBuild.LocalOutputPath";
 
-        const string BrowserWebGLTemplate = "PROJECT:WYMinigame2022";
+        private const string BrowserWebGLTemplate = "PROJECT:WYMinigame2022";
 
-        const string ReleaseEmscriptenArgs =
+        private const string ReleaseEmscriptenArgs =
             " -s EXPORTED_FUNCTIONS=_main,_sbrk,_emscripten_stack_get_base,_emscripten_stack_get_end" +
             " -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s TOTAL_MEMORY=256MB" +
             " -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stackTrace\",\"addRunDependency\",\"removeRunDependency\"," +
@@ -120,10 +120,10 @@ namespace MGKit.Editor
             return Path.GetFullPath(Path.Combine(projectRoot, stored));
         }
 
-        static string GetProjectRoot() =>
+        private static string GetProjectRoot() =>
             Path.GetDirectoryName(Application.dataPath) ?? Directory.GetCurrentDirectory();
 
-        static bool EnsureWebGLBuildTarget(bool interactive)
+        private static bool EnsureWebGLBuildTarget(bool interactive)
         {
             if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.WebGL)
                 return true;
@@ -138,7 +138,7 @@ namespace MGKit.Editor
             return false;
         }
 
-        static Dictionary<string, string> GetValidatedOptions()
+        private static Dictionary<string, string> GetValidatedOptions()
         {
             ParseCommandLineArguments(out var options);
 
@@ -164,7 +164,7 @@ namespace MGKit.Editor
             return options;
         }
 
-        static void ParseCommandLineArguments(out Dictionary<string, string> providedArguments)
+        private static void ParseCommandLineArguments(out Dictionary<string, string> providedArguments)
         {
             providedArguments = new Dictionary<string, string>();
             var args = Environment.GetCommandLineArgs();
@@ -191,7 +191,7 @@ namespace MGKit.Editor
             }
         }
 
-        static void ReportSummaryToLog(BuildSummary summary)
+        private static void ReportSummaryToLog(BuildSummary summary)
         {
             Debug.Log(
                 $"{Eol}###########################{Eol}" +
@@ -203,13 +203,13 @@ namespace MGKit.Editor
                 $"Size: {summary.totalSize} bytes{Eol}");
         }
 
-        static void ExitAborted()
+        private static void ExitAborted()
         {
             Debug.LogError("[WebGLCiBuild] Build aborted before BuildPlayer.");
             EditorApplication.Exit(200);
         }
 
-        static void ExitWithResult(BuildResult result)
+        private static void ExitWithResult(BuildResult result)
         {
             switch (result)
             {
@@ -217,14 +217,17 @@ namespace MGKit.Editor
                     Debug.Log("[WebGLCiBuild] Build succeeded.");
                     EditorApplication.Exit(0);
                     break;
+
                 case BuildResult.Failed:
                     Debug.LogError("[WebGLCiBuild] Build failed.");
                     EditorApplication.Exit(101);
                     break;
+
                 case BuildResult.Cancelled:
                     Debug.LogError("[WebGLCiBuild] Build cancelled.");
                     EditorApplication.Exit(102);
                     break;
+
                 default:
                     Debug.LogError("[WebGLCiBuild] Build result unknown.");
                     EditorApplication.Exit(103);

@@ -15,7 +15,6 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using MGKit;
 
 namespace MGKit.Editor
 {
@@ -146,8 +145,6 @@ namespace MGKit.Editor
             }
         }
 
-
-
         private static void DetectCurrentIndex()
         {
             var target = EditorUserBuildSettings.activeBuildTarget;
@@ -172,7 +169,7 @@ namespace MGKit.Editor
                     return;
                 }
             }
-            
+
             _currentIndex = 0; // fallback
         }
 
@@ -191,12 +188,12 @@ namespace MGKit.Editor
                 }
 
                 EditorUtility.DisplayProgressBar("Platform Switcher", "正在隔离不相关的 SDK 文件...", 0.2f);
-                
+
                 // 1. 隔离其他平台的 SDK 到 SDKs 目录
                 foreach (var otherConfig in _configs)
                 {
                     if (otherConfig == config) continue;
-                    
+
                     foreach (var sdk in otherConfig.SDKs)
                     {
                         MoveToArchive(sdk.Active, sdk.Archive);

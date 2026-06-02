@@ -48,7 +48,7 @@ namespace MGKit.Editor
             Debug.Log($"[UIRaycastOptimize] 已处理 {modifiedPrefabs} 个预制体，关闭 {changedCount} 个 RaycastTarget。");
         }
 
-        static bool NeedsRaycast(GameObject go) =>
+        private static bool NeedsRaycast(GameObject go) =>
             go.GetComponent<Button>() != null ||
             go.GetComponent<Toggle>() != null ||
             go.GetComponent<ScrollRect>() != null ||

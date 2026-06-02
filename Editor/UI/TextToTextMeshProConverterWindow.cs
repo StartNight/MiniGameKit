@@ -12,19 +12,19 @@ namespace MGKit.Editor
     /// </summary>
     public class TextToTextMeshProConverterWindow : EditorWindow
     {
-        readonly List<string> _prefabPaths = new List<string>();
-        readonly List<string> _scriptSearchFolders = new List<string> { "Assets/Scripts" };
+        private readonly List<string> _prefabPaths = new List<string>();
+        private readonly List<string> _scriptSearchFolders = new List<string> { "Assets/Scripts" };
 
-        Vector2 _scroll;
-        TMP_FontAsset _targetFont;
-        string _folderPath = "Assets";
-        bool _autoFixLinkedScripts = true;
-        int _modeIndex;
+        private Vector2 _scroll;
+        private TMP_FontAsset _targetFont;
+        private string _folderPath = "Assets";
+        private bool _autoFixLinkedScripts = true;
+        private int _modeIndex;
 
         [MenuItem(MGKitEditorPaths.UiMenu + "Text 转 TextMeshPro", false, 150)]
         public static void Open() => GetWindow<TextToTextMeshProConverterWindow>("Text → TMP");
 
-        void OnGUI()
+        private void OnGUI()
         {
             _targetFont = (TMP_FontAsset)EditorGUILayout.ObjectField("TMP 字体", _targetFont, typeof(TMP_FontAsset), false);
             _autoFixLinkedScripts = EditorGUILayout.Toggle("同步修改关联脚本类型", _autoFixLinkedScripts);
@@ -59,7 +59,7 @@ namespace MGKit.Editor
                 ConvertAll();
         }
 
-        void DrawPrefabList()
+        private void DrawPrefabList()
         {
             for (var i = _prefabPaths.Count - 1; i >= 0; i--)
             {
@@ -71,7 +71,7 @@ namespace MGKit.Editor
             }
         }
 
-        void LoadPrefabsFromFolder(string assetFolder)
+        private void LoadPrefabsFromFolder(string assetFolder)
         {
             _prefabPaths.Clear();
             var full = MGKitEditorPaths.ToFullPath(assetFolder);
@@ -86,7 +86,7 @@ namespace MGKit.Editor
             }
         }
 
-        void ConvertAll()
+        private void ConvertAll()
         {
             if (_prefabPaths.Count == 0)
             {
@@ -114,7 +114,7 @@ namespace MGKit.Editor
             AssetDatabase.Refresh();
         }
 
-        void ConvertPrefab(string assetPath)
+        private void ConvertPrefab(string assetPath)
         {
             var root = PrefabUtility.LoadPrefabContents(assetPath);
             if (root == null)
@@ -159,7 +159,7 @@ namespace MGKit.Editor
                 Debug.LogError("[Text→TMP] 保存失败：" + assetPath);
         }
 
-        static TextAlignmentOptions MapAlignment(TextAnchor anchor) => anchor switch
+        private static TextAlignmentOptions MapAlignment(TextAnchor anchor) => anchor switch
         {
             TextAnchor.UpperLeft => TextAlignmentOptions.TopLeft,
             TextAnchor.UpperCenter => TextAlignmentOptions.Top,
@@ -173,7 +173,7 @@ namespace MGKit.Editor
             _ => TextAlignmentOptions.Center
         };
 
-        void PatchLinkedScripts()
+        private void PatchLinkedScripts()
         {
             var guids = new HashSet<string>();
             foreach (var prefabPath in _prefabPaths)

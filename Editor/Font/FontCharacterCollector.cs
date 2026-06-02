@@ -15,7 +15,7 @@ namespace MGKit.Editor
     /// </summary>
     public static class FontCharacterCollector
     {
-        const string CommonAscii =
+        private const string CommonAscii =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
         [MenuItem(MGKitEditorPaths.FontMenu + "收集全项目字符并写入 TTF", false, 200)]
@@ -104,7 +104,7 @@ namespace MGKit.Editor
             return sb.ToString();
         }
 
-        static string ScanCSharpScripts(string folder)
+        private static string ScanCSharpScripts(string folder)
         {
             var sb = new StringBuilder();
             var files = Directory.GetFiles(folder, "*.cs", SearchOption.AllDirectories);
@@ -118,7 +118,7 @@ namespace MGKit.Editor
             return sb.ToString();
         }
 
-        static string ScanLocalizationFolder(string assetFolder)
+        private static string ScanLocalizationFolder(string assetFolder)
         {
             var full = MGKitEditorPaths.ToFullPath(assetFolder);
             if (!Directory.Exists(full))
@@ -136,7 +136,7 @@ namespace MGKit.Editor
             return sb.ToString();
         }
 
-        static string ScanPrefabsUnder(string assetRoots)
+        private static string ScanPrefabsUnder(string assetRoots)
         {
             var sb = new StringBuilder();
             var roots = assetRoots.Split(';');
@@ -170,7 +170,7 @@ namespace MGKit.Editor
             return sb.ToString();
         }
 
-        static void ApplyToTrueTypeFont(string ttfAssetPath, string characters)
+        private static void ApplyToTrueTypeFont(string ttfAssetPath, string characters)
         {
             var imp = AssetImporter.GetAtPath(ttfAssetPath) as TrueTypeFontImporter;
             if (imp == null)
@@ -183,7 +183,7 @@ namespace MGKit.Editor
             AssetDatabase.ImportAsset(ttfAssetPath);
         }
 
-        static void WriteTextFile(string outputAssetFolder, string fileName, string content)
+        private static void WriteTextFile(string outputAssetFolder, string fileName, string content)
         {
             var dir = MGKitEditorPaths.ToFullPath(outputAssetFolder);
             if (!Directory.Exists(dir))

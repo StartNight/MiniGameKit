@@ -25,7 +25,7 @@ namespace MGKit.Editor
             ApplyTemplateAsync(fullPath);
         }
 
-        static async void ApplyTemplateAsync(string fullPath)
+        private static async void ApplyTemplateAsync(string fullPath)
         {
             await Task.Yield();
             if (!File.Exists(fullPath))

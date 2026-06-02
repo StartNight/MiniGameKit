@@ -5,8 +5,8 @@ namespace MGKit.Editor
 {
     public class MGKitEditorSettingsWindow : EditorWindow
     {
-        int _tab;
-        string _scriptFoldersRaw;
+        private int _tab;
+        private string _scriptFoldersRaw;
 
         [MenuItem(MGKitEditorPaths.MenuRoot + "项目设置", false, 0)]
         public static void Open() => GetWindow<MGKitEditorSettingsWindow>("MGKit 设置");
@@ -17,12 +17,12 @@ namespace MGKit.Editor
             w._tab = 4;
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
             _scriptFoldersRaw = string.Join(";", MGKitEditorPaths.FontScanScriptFolders);
         }
 
-        void OnGUI()
+        private void OnGUI()
         {
             _tab = GUILayout.Toolbar(_tab, new[] { "本地化", "字体", "优化", "调试", "Android" });
 
@@ -32,22 +32,26 @@ namespace MGKit.Editor
                 case 0:
                     DrawLocalization();
                     break;
+
                 case 1:
                     DrawFont();
                     break;
+
                 case 2:
                     DrawOptimization();
                     break;
+
                 case 3:
                     DrawDebug();
                     break;
+
                 case 4:
                     DrawAndroid();
                     break;
             }
         }
 
-        void DrawLocalization()
+        private void DrawLocalization()
         {
             MGKitEditorPaths.I2CsvAssetPath =
                 EditorGUILayout.TextField("I2 CSV", MGKitEditorPaths.I2CsvAssetPath);
@@ -55,7 +59,7 @@ namespace MGKit.Editor
                 EditorGUILayout.TextField("LanguageSource Asset", MGKitEditorPaths.I2LanguageSourceAssetPath);
         }
 
-        void DrawFont()
+        private void DrawFont()
         {
             MGKitEditorPaths.FontScanTargetTtf =
                 EditorGUILayout.TextField("静态 TTF", MGKitEditorPaths.FontScanTargetTtf);
@@ -72,7 +76,7 @@ namespace MGKit.Editor
                 MGKitEditorPaths.FontScanScriptFolders = _scriptFoldersRaw.Split(';');
         }
 
-        void DrawOptimization()
+        private void DrawOptimization()
         {
             MGKitEditorPaths.UiPrefabSearchRoot =
                 EditorGUILayout.TextField("UI Prefab 根目录", MGKitEditorPaths.UiPrefabSearchRoot);
@@ -82,7 +86,7 @@ namespace MGKit.Editor
                 EditorGUILayout.TextField("SVC 输出路径", MGKitEditorPaths.ShaderVariantCollectionAssetPath);
         }
 
-        void DrawDebug()
+        private void DrawDebug()
         {
             MGKitEditorPaths.PlayerPrefsClearKeys =
                 EditorGUILayout.TextField("清理存档键名 (;)", MGKitEditorPaths.PlayerPrefsClearKeys);
@@ -92,7 +96,7 @@ namespace MGKit.Editor
                 EditorGUILayout.TextField("组件类型名", MGKitEditorPaths.PrefabComponentTypeName);
         }
 
-        void DrawAndroid()
+        private void DrawAndroid()
         {
             EditorGUILayout.HelpBox("密码保存在本机 EditorPrefs，请勿提交到版本库。", MessageType.Info);
             MGKitEditorPaths.AndroidKeystorePath =

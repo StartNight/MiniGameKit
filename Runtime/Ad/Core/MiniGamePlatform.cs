@@ -11,15 +11,14 @@
 
 namespace MGKit
 {
-
-public enum MiniGamePlatform
-{
-    Editor = 0,
-    WeChatMiniGame = 1,
-    DouyinMiniGame = 2,
-    WebGL = 3,
-    Android = 4,
-    iOS = 5,
-    CrazyGames = 6
-}
+    public enum MiniGamePlatform
+    {
+        Editor = 0,
+        WeChatMiniGame = 1,
+        DouyinMiniGame = 2,
+        WebGL = 3,
+        Android = 4,
+        iOS = 5,
+        CrazyGames = 6
+    }
 }

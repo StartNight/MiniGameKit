@@ -12,17 +12,17 @@ namespace MGKit.Editor
     /// </summary>
     public class CsUtf8ConverterWindow : EditorWindow
     {
-        readonly List<string> _folderPaths = new List<string>();
-        readonly List<string> _scannedFiles = new List<string>();
-        Vector2 _folderScroll;
-        Vector2 _resultScroll;
-        bool _includeSubfolders = true;
-        int _skippedFolderCount;
+        private readonly List<string> _folderPaths = new List<string>();
+        private readonly List<string> _scannedFiles = new List<string>();
+        private Vector2 _folderScroll;
+        private Vector2 _resultScroll;
+        private bool _includeSubfolders = true;
+        private int _skippedFolderCount;
 
         [MenuItem(MGKitEditorPaths.ScriptMenu + "C# 转 UTF-8 (无 BOM)", false, 100)]
         public static void Open() => GetWindow<CsUtf8ConverterWindow>("CS UTF-8").Show();
 
-        void OnGUI()
+        private void OnGUI()
         {
             EditorGUILayout.LabelField("将文件夹中的 .cs 转为 UTF-8（无 BOM）", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox("支持 Assets 相对路径或绝对路径，可多文件夹。", MessageType.Info);
@@ -32,7 +32,7 @@ namespace MGKit.Editor
             DrawActions();
         }
 
-        void DrawFolderList()
+        private void DrawFolderList()
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("目标文件夹", EditorStyles.boldLabel);
@@ -60,7 +60,7 @@ namespace MGKit.Editor
             EditorGUILayout.EndScrollView();
         }
 
-        void DrawScanResult()
+        private void DrawScanResult()
         {
             if (_scannedFiles.Count == 0)
             {
@@ -81,7 +81,7 @@ namespace MGKit.Editor
             EditorGUILayout.EndScrollView();
         }
 
-        void DrawActions()
+        private void DrawActions()
         {
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("清空"))
@@ -99,7 +99,7 @@ namespace MGKit.Editor
             EditorGUILayout.EndHorizontal();
         }
 
-        void AddFolderByDialog()
+        private void AddFolderByDialog()
         {
             var selected = EditorUtility.OpenFolderPanel("选择文件夹", Application.dataPath, "");
             if (!string.IsNullOrEmpty(selected))
@@ -109,7 +109,7 @@ namespace MGKit.Editor
             }
         }
 
-        void PickFolder(int index)
+        private void PickFolder(int index)
         {
             var selected = EditorUtility.OpenFolderPanel("选择文件夹", Application.dataPath, "");
             if (!string.IsNullOrEmpty(selected))
@@ -119,7 +119,7 @@ namespace MGKit.Editor
             }
         }
 
-        void Scan()
+        private void Scan()
         {
             _scannedFiles.Clear();
             _skippedFolderCount = 0;
@@ -148,7 +148,7 @@ namespace MGKit.Editor
             _scannedFiles.Sort(StringComparer.OrdinalIgnoreCase);
         }
 
-        void ConvertAll()
+        private void ConvertAll()
         {
             var ok = 0;
             var fail = 0;
@@ -171,13 +171,13 @@ namespace MGKit.Editor
             EditorUtility.DisplayDialog("完成", $"成功 {ok}，失败 {fail}", "确定");
         }
 
-        void ClearScan()
+        private void ClearScan()
         {
             _scannedFiles.Clear();
             _skippedFolderCount = 0;
         }
 
-        static void PingFile(string absolutePath)
+        private static void PingFile(string absolutePath)
         {
             var root = MGKitEditorPaths.ProjectRoot.Replace('\\', '/');
             var normalized = absolutePath.Replace('\\', '/');
@@ -195,7 +195,7 @@ namespace MGKit.Editor
             EditorUtility.RevealInFinder(absolutePath);
         }
 
-        static string ReadWithEncodingDetection(string path)
+        private static string ReadWithEncodingDetection(string path)
         {
             var bytes = File.ReadAllBytes(path);
             if (bytes.Length == 0)
@@ -218,7 +218,7 @@ namespace MGKit.Editor
             }
         }
 
-        static string NormalizeFolder(string input)
+        private static string NormalizeFolder(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;

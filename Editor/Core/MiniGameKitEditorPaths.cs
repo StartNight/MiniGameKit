@@ -8,7 +8,7 @@ namespace MGKit.Editor
     /// </summary>
     public static class MGKitEditorPaths
     {
-        const string Prefix = "MGKit.";
+        private const string Prefix = "MGKit.";
 
         public const string MenuRoot = "Tools/Minigame/";
 

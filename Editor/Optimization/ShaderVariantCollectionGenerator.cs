@@ -55,7 +55,7 @@ namespace MGKit.Editor
             Debug.Log($"[ShaderVariantCollection] 已保存 {savePath}，变体数 {count}。");
         }
 
-        static void CreateFoldersRecursively(string assetPath)
+        private static void CreateFoldersRecursively(string assetPath)
         {
             if (AssetDatabase.IsValidFolder(assetPath))
                 return;

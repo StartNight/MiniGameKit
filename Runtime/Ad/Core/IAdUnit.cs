@@ -11,43 +11,49 @@
 *****************************************************/
 
 using System;
+
 namespace MGKit
 {
+    public interface IAdUnit : IDisposable
+    {
+        string AdUnitId { get; }
+        AdType Type { get; }
+        AdState State { get; }
 
+        void Load();
 
-public interface IAdUnit : IDisposable
-{
-    string AdUnitId { get; }
-    AdType Type { get; }
-    AdState State { get; }
+        void Show();
 
-    void Load();
-    void Show();
-    void Hide();
+        void Hide();
 
-    event Action<IAdUnit> OnLoaded;
-    event Action<IAdUnit, string> OnError;
-    event Action<IAdUnit> OnClosed;
-    event Action<IAdUnit> OnClicked;
-}
+        event Action<IAdUnit> OnLoaded;
 
-public interface IBannerAdUnit : IAdUnit
-{
-    void SetPosition(int left, int top);
-    void SetSize(int width, int height);
-}
+        event Action<IAdUnit, string> OnError;
 
-public interface IInterstitialAdUnit : IAdUnit { }
+        event Action<IAdUnit> OnClosed;
 
-public interface IRewardedVideoAdUnit : IAdUnit
-{
-    event Action<IRewardedVideoAdUnit, bool> OnRewarded;
-}
+        event Action<IAdUnit> OnClicked;
+    }
 
-public interface ICustomAdUnit : IAdUnit
-{
-    void SetPosition(int left, int top);
-    void SetSize(int width, int height);
-}
+    public interface IBannerAdUnit : IAdUnit
+    {
+        void SetPosition(int left, int top);
 
+        void SetSize(int width, int height);
+    }
+
+    public interface IInterstitialAdUnit : IAdUnit
+    { }
+
+    public interface IRewardedVideoAdUnit : IAdUnit
+    {
+        event Action<IRewardedVideoAdUnit, bool> OnRewarded;
+    }
+
+    public interface ICustomAdUnit : IAdUnit
+    {
+        void SetPosition(int left, int top);
+
+        void SetSize(int width, int height);
+    }
 }
