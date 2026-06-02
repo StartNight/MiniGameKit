@@ -488,4 +488,6 @@ public class WeChatPlatform : IPlatformSDK
 
     #endregion
 }
+}
+
 #endif
