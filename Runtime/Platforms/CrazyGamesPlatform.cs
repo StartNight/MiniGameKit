@@ -343,6 +343,6 @@ namespace MGKit
 
         #endregion IAdAdapter 实现
     }
+}
 
 #endif
-}

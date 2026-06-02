@@ -216,5 +216,7 @@ public class WebPlatform : IPlatformSDK
     }
 
     #endregion
+    }
 }
+
 #endif
