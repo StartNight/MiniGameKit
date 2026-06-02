@@ -45,14 +45,14 @@ namespace MiniGameKit.Editor.AutoBuild
         {
             var repo = AutoBuildConfig.GithubOwnerRepo;
             var token = AutoBuildConfig.GithubPAT;
-            if (string.IsNullOrEmpty(repo) || string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(repo) || repo == "Owner/Repo" || string.IsNullOrEmpty(token))
             {
-                EditorUtility.DisplayDialog("API 触发失败", "请先在构建配置面板中配置 GitHub Repo (Owner/Repo) 和 Personal Access Token (PAT)！", "确定");
+                EditorUtility.DisplayDialog("API 触发失败", "请先在构建配置面板 (MiniGameKit -> AutoBuild Settings) 中配置正确的 GitHub Repo (例如 StartNight/OutbreakBowling-U3D) 和 Personal Access Token (PAT)！", "确定");
                 return;
             }
 
             var url = $"https://api.github.com/repos/{repo}/actions/workflows/minigame-build.yml/dispatches";
-            var json = $"{{\"ref\":\"main\",\"inputs\":{{\"targetPlatform\":\"{platform}\"}}}}";
+            var json = $"{{\"ref\":\"master\",\"inputs\":{{\"targetPlatform\":\"{platform}\"}}}}";
 
             EditorApplication.delayCall += () =>
             {
