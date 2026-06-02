@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Text;
 using UnityEditor;
@@ -23,20 +23,21 @@ namespace MiniGameKit.Editor.AutoBuild
             RunGitCommand($"submodule update --init --remote -- {path}");
         }
 
-        public static void TriggerViaCommit(string platform)
+        public static void TriggerViaTag(string platform)
         {
-            Debug.Log($"[AutoBuild] 尝试通过提交空 commit 来触发 {platform} 的构建...");
-            var commitMsg = $"Build_{platform} via Editor trigger";
-            var result = RunGitCommand($"commit --allow-empty -m \"{commitMsg}\"");
+            var tagName = $"Build_{platform}_{DateTime.Now:yyyyMMdd_HHmmss}";
+            Debug.Log($"[AutoBuild] 尝试通过打标签 (Tag) 来触发 {platform} 的构建: {tagName}");
+            
+            var result = RunGitCommand($"tag {tagName}");
             if (result)
             {
-                Debug.Log("[AutoBuild] 提交成功，正在推送到远端...");
-                RunGitCommand("push");
-                EditorUtility.DisplayDialog("构建触发成功", $"已推送 Commit:\n{commitMsg}\n\nGitHub Actions 应该很快会启动。", "确定");
+                Debug.Log("[AutoBuild] Tag 创建成功，正在推送到远端...");
+                RunGitCommand($"push origin {tagName}");
+                EditorUtility.DisplayDialog("构建触发成功", $"已推送 Tag:\n{tagName}\n\nGitHub Actions 应该很快会启动。", "确定");
             }
             else
             {
-                EditorUtility.DisplayDialog("构建触发失败", "Git commit 失败，请检查 Console 日志。", "确定");
+                EditorUtility.DisplayDialog("构建触发失败", "Git tag 创建失败，请检查 Console 日志。", "确定");
             }
         }
 

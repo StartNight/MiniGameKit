@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 
 namespace MiniGameKit.Editor.AutoBuild
@@ -20,16 +20,16 @@ namespace MiniGameKit.Editor.AutoBuild
         {
             EditorGUILayout.Space();
             GUILayout.Label("远程构建触发 (GitHub Actions)", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox("选择平台并触发远程构建。你可以通过推送 Commit 或者直接调用 GitHub API 触发。", MessageType.Info);
+            EditorGUILayout.HelpBox("选择平台并触发远程构建。你可以通过打 Tag 或者直接调用 GitHub API 触发（推荐打 Tag 做版本记录）。", MessageType.Info);
 
             selectedPlatformIndex = EditorGUILayout.Popup("目标平台", selectedPlatformIndex, platforms);
             var selectedPlatform = platforms[selectedPlatformIndex];
 
             EditorGUILayout.Space();
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button($"Git Push 触发 {selectedPlatform}"))
+            if (GUILayout.Button($"创建 Tag 触发 {selectedPlatform}"))
             {
-                SubRepoUpdater.TriggerViaCommit(selectedPlatform);
+                SubRepoUpdater.TriggerViaTag(selectedPlatform);
             }
 
             if (GUILayout.Button($"API 触发 {selectedPlatform}"))

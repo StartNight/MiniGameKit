@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -43,9 +43,8 @@ on:
           - WebGL
           - CrazyGames
   push:
-    branches:
-      - master
-      - main
+    tags:
+      - 'Build_*'
 
 jobs:
   build:
@@ -64,19 +63,19 @@ jobs:
             if [ ""$INPUT_PLAT"" == ""WebGL"" ]; then echo ""PLATFORM=WebGL"" >> $GITHUB_ENV; fi
             if [ ""$INPUT_PLAT"" == ""CrazyGames"" ]; then echo ""PLATFORM=CrazyGames"" >> $GITHUB_ENV; fi
           else
-            MSG=""${{{{ github.event.head_commit.message }}}}""
-            if [[ ""$MSG"" == Build_WeChat* ]]; then echo ""PLATFORM=WeChatMiniGame"" >> $GITHUB_ENV; fi
-            if [[ ""$MSG"" == Build_Douyin* ]]; then echo ""PLATFORM=DouyinMiniGame"" >> $GITHUB_ENV; fi
-            if [[ ""$MSG"" == Build_Android* ]]; then echo ""PLATFORM=Android"" >> $GITHUB_ENV; fi
-            if [[ ""$MSG"" == Build_iOS* ]]; then echo ""PLATFORM=iOS"" >> $GITHUB_ENV; fi
-            if [[ ""$MSG"" == Build_WebGL* ]]; then echo ""PLATFORM=WebGL"" >> $GITHUB_ENV; fi
-            if [[ ""$MSG"" == Build_CrazyGames* ]]; then echo ""PLATFORM=CrazyGames"" >> $GITHUB_ENV; fi
+            TAG_NAME=""${{{{ github.ref_name }}}}""
+            if [[ ""$TAG_NAME"" == Build_WeChat* ]]; then echo ""PLATFORM=WeChatMiniGame"" >> $GITHUB_ENV; fi
+            if [[ ""$TAG_NAME"" == Build_Douyin* ]]; then echo ""PLATFORM=DouyinMiniGame"" >> $GITHUB_ENV; fi
+            if [[ ""$TAG_NAME"" == Build_Android* ]]; then echo ""PLATFORM=Android"" >> $GITHUB_ENV; fi
+            if [[ ""$TAG_NAME"" == Build_iOS* ]]; then echo ""PLATFORM=iOS"" >> $GITHUB_ENV; fi
+            if [[ ""$TAG_NAME"" == Build_WebGL* ]]; then echo ""PLATFORM=WebGL"" >> $GITHUB_ENV; fi
+            if [[ ""$TAG_NAME"" == Build_CrazyGames* ]]; then echo ""PLATFORM=CrazyGames"" >> $GITHUB_ENV; fi
           fi
 
       - name: Check Platform Validity
         run: |
           if [ -z ""${{{{ env.PLATFORM }}}}"" ]; then
-            echo ""No matching Build_PLATFORM trigger found in commit message. Skipping build.""
+            echo ""No matching Build_PLATFORM trigger found in tag or dispatch. Skipping build.""
             exit 0
           fi
           echo ""Building for Platform: ${{{{ env.PLATFORM }}}}""
