@@ -203,22 +203,7 @@ Packages/MiniGameKit/
 | 适配器   | 平台名 + AdAdapter   | `WeChatAdAdapter`, `DouyinAdAdapter`      |
 | MenuItem | Tools/Minigame/分类/ | `Tools/Minigame/构建/微信小游戏/本地构建` |
 
-### 5.3 文件头注释
-
-所有代码文件必须包含标准文件头：
-
-```csharp
-/****************************************************
- * FileName:        {文件名}
- * CreateTime:      {创建时间}
- * Version:         {版本}
- * UnityVersion:    {Unity版本}
- * Description:     {描述}
- *
-*****************************************************/
-```
-
-### 5.4 扩展规范
+### 5.3 扩展规范
 
 新增平台适配器：
 
@@ -233,7 +218,7 @@ Packages/MiniGameKit/
 1. 在 `MiniGameBuildMenu` 添加带有条件编译 (`#if MACRO`) 的动态 MenuItem 入口
 2. 遵循 统一流程：切换Provider → 构建Addressables → BuildPlayer → 结果弹窗
 
-### 5.5 版本控制
+### 5.4 版本控制
 
 - 所有代码变更需通过编译验证
 - Editor工具在非Play模式下不可访问运行时实例
