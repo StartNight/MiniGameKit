@@ -10,6 +10,8 @@ namespace MiniGameKit.Editor.AutoBuild
 {
     public static class SubRepoUpdater
     {
+        private static DateTime _lastTriggerTime = DateTime.MinValue;
+
         public static void UpdateSubmodule()
         {
             var path = AutoBuildConfig.SubmodulePath;
@@ -25,6 +27,13 @@ namespace MiniGameKit.Editor.AutoBuild
 
         public static void TriggerViaTag(string platform)
         {
+            if ((DateTime.Now - _lastTriggerTime).TotalSeconds < 5)
+            {
+                Debug.LogWarning("[AutoBuild] 触发过于频繁，请稍后再试！");
+                return;
+            }
+            _lastTriggerTime = DateTime.Now;
+
             var tagName = $"Build_{platform}_{DateTime.Now:yyyyMMdd_HHmmss}";
             Debug.Log($"[AutoBuild] 尝试通过打标签 (Tag) 来触发 {platform} 的构建: {tagName}");
             
@@ -43,6 +52,13 @@ namespace MiniGameKit.Editor.AutoBuild
 
         public static void TriggerViaAPI(string platform)
         {
+            if ((DateTime.Now - _lastTriggerTime).TotalSeconds < 5)
+            {
+                Debug.LogWarning("[AutoBuild] 触发过于频繁，请稍后再试！");
+                return;
+            }
+            _lastTriggerTime = DateTime.Now;
+
             var repo = AutoBuildConfig.GithubOwnerRepo;
             if (string.IsNullOrEmpty(repo) || repo == "Owner/Repo")
             {
