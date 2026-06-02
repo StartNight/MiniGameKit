@@ -12,7 +12,40 @@ MiniGame 文件夹是一个**通用的小游戏功能组件库**，为 Unity 项
 
 ---
 
-## 2. 包含内容
+## 2. 如何引入到 Unity 项目
+
+MiniGameKit 支持作为普通的 Unity 插件包 (Package) 引入你的项目中。
+
+### 方式一：作为 Git Submodule 引入（推荐）
+
+如果你的主项目使用 Git 管理，建议将该模块作为子仓库放在 `Packages` 目录下：
+
+1. 在项目根目录（`Assets` 同级）打开命令行。
+2. 运行以下命令：
+   ```bash
+   git submodule add https://github.com/StartNight/MiniGameKit.git Packages/MiniGameKit
+   ```
+3. 切回 Unity 窗口，等待代码编译完成，顶部菜单栏将自动出现 `Tools/Minigame` 工具选项及右上角的平台切换器。
+
+### 方式二：直接拉取源码
+
+如果你不使用 Git Submodule，也可以直接将其克隆或下载到 `Packages` 目录中：
+
+```bash
+cd Packages
+git clone https://github.com/StartNight/MiniGameKit.git
+```
+*(注意：请确保最终文件夹名称为 `MiniGameKit`，以保证 asmdef 等引用正常)*
+
+### 方式三：通过 Unity Package Manager (UPM) 引入
+
+1. 在 Unity 中打开 `Window > Package Manager`。
+2. 点击左上角的 **+** 号，选择 **Add package from git URL...**。
+3. 输入 `https://github.com/StartNight/MiniGameKit.git` 并点击 `Add`，Unity 会自动下载并安装。
+
+---
+
+## 3. 包含内容
 
 ### 2.1 多平台广告管理系统
 
@@ -74,7 +107,7 @@ MiniGame 文件夹是一个**通用的小游戏功能组件库**，为 Unity 项
 
 ---
 
-## 3. 目录结构
+## 4. 目录结构
 
 ```
 Packages/MiniGameKit/
@@ -120,7 +153,7 @@ Packages/MiniGameKit/
 
 ---
 
-## 4. 设计原则
+## 5. 设计原则
 
 ### 4.1 高内聚、低耦合
 
@@ -153,7 +186,7 @@ Packages/MiniGameKit/
 
 ---
 
-## 5. 开发规范
+## 6. 开发规范
 
 ### 5.1 程序集定义
 
