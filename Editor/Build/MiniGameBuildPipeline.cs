@@ -195,6 +195,7 @@ namespace MGKit.Editor
                 {
                     OnProgress?.Invoke(0.5f, "应用WebGL发布设置...");
                     WebGLCiBuild.ApplyReleaseSizeOptimizations();
+                    TextureAstcOptimizer.OptimizeForWebGL();
                 }
 
                 var outputPath = ResolveOutputPath(config, target);
@@ -418,13 +419,30 @@ namespace MGKit.Editor
             // 添加当前平台对应的宏
             if (PlatformDefines.TryGetValue(platform, out var targetDefine))
             {
+                // CI 环境可能缺少平台 SDK 程序集（例如 WeChatWASM）。此时写入宏会触发编译错误（CS0246）。
+                if (platform == MiniGamePlatform.WeChatMiniGame && !IsWeChatWasmAvailable())
+                {
+                    Log("未检测到 WeChatWASM 程序集，跳过写入 WEIXINMINIGAME 宏（将使用 WebGL 回退构建）。");
+                }
+                else
+                {
                 if (!defineList.Contains(targetDefine))
                     defineList.Add(targetDefine);
                 Log($"已添加 Scripting Define: {targetDefine}");
+                }
             }
 
             PlayerSettings.SetScriptingDefineSymbolsForGroup(group, defineList.ToArray());
             return originalDefines;
+        }
+
+        static bool IsWeChatWasmAvailable()
+        {
+            // 只做存在性判断，避免直接引用 WeChatWASM 导致编译依赖。
+            return Type.GetType("WeChatWASM.WX, Assembly-CSharp") != null
+                || Type.GetType("WeChatWASM.WX, Assembly-CSharp-Editor") != null
+                || Type.GetType("WeChatWASM.WXConvertCore, Assembly-CSharp-Editor") != null
+                || Type.GetType("WeChatWASM.WXConvertCore") != null;
         }
 
         /// <summary>
