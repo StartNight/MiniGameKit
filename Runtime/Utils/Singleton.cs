@@ -3,6 +3,9 @@ using UnityEngine;
 /// <summary>
 /// 通用 MonoBehaviour 单例基类
 /// </summary>
+namespace MGKit
+{
+
 public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
     private static T m_instance;
@@ -63,4 +66,5 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
     public virtual void AwakeOf()
     {
     }
+}
 }

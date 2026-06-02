@@ -2,6 +2,9 @@
 #if WEIXINMINIGAME
 using WeChatWASM;
 #endif
+namespace MGKit
+{
+
 
 public class MiniGameInit : MonoBehaviour
 {
@@ -11,4 +14,6 @@ public class MiniGameInit : MonoBehaviour
         WX.ReportGameStart();
 #endif
     }
+}
+
 }

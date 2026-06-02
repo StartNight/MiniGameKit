@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 一键将指定文件夹中预制体上的 Mask 替换为 RectMask2D，
@@ -11,7 +11,7 @@ namespace MiniGameKit.Editor
     /// </summary>
     public static class MaskToRectMask2DTool
     {
-        [MenuItem(MiniGameKitEditorPaths.UiMenu + "Mask → RectMask2D 替换", false, 25)]
+        [MenuItem(MGKitEditorPaths.UiMenu + "Mask → RectMask2D 替换", false, 25)]
         public static void ReplaceMasks()
         {
             var folder = EditorUtility.OpenFolderPanel("选择预制体文件夹", "Assets/Prefabs/UI", "");

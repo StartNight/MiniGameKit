@@ -15,19 +15,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MiniGameKit.Editor;
+using MGKit.Editor;
 using UnityEditor;
 using UnityEngine;
+using MGKit;
 
 public static class AdDefineSymbols
 {
     private const string WECHAT_SYMBOL = "WEIXINMINIGAME";
     private const string DOUYIN_SYMBOL = "DOUYINMINIGAME";
 
-    private static readonly Dictionary<AdPlatform, string[]> PlatformSymbols = new Dictionary<AdPlatform, string[]>()
+    private static readonly Dictionary<MiniGamePlatform, string[]> PlatformSymbols = new Dictionary<MiniGamePlatform, string[]>()
     {
-        { AdPlatform.WeChatMiniGame, new[] { WECHAT_SYMBOL } },
-        { AdPlatform.DouyinMiniGame, new[] { DOUYIN_SYMBOL } },
+        { MiniGamePlatform.WeChatMiniGame, new[] { WECHAT_SYMBOL } },
+        { MiniGamePlatform.DouyinMiniGame, new[] { DOUYIN_SYMBOL } },
     };
 
     private static readonly BuildTargetGroup[] SymbolTargets =
@@ -38,19 +39,19 @@ public static class AdDefineSymbols
         BuildTargetGroup.iOS,
     };
 
-    [MenuItem(MiniGameKitEditorPaths.AdPlatformMenu + "启用微信小游戏广告", false, 200)]
-    public static void EnableWeChat() => SetExclusivePlatform(AdPlatform.WeChatMiniGame);
+    [MenuItem(MGKitEditorPaths.AdPlatformMenu + "启用微信小游戏广告", false, 200)]
+    public static void EnableWeChat() => SetExclusivePlatform(MiniGamePlatform.WeChatMiniGame);
 
-    [MenuItem(MiniGameKitEditorPaths.AdPlatformMenu + "禁用微信小游戏广告", false, 201)]
-    public static void DisableWeChat() => TogglePlatformSymbol(AdPlatform.WeChatMiniGame, false);
+    [MenuItem(MGKitEditorPaths.AdPlatformMenu + "禁用微信小游戏广告", false, 201)]
+    public static void DisableWeChat() => TogglePlatformSymbol(MiniGamePlatform.WeChatMiniGame, false);
 
-    [MenuItem(MiniGameKitEditorPaths.AdPlatformMenu + "启用抖音小游戏广告", false, 210)]
-    public static void EnableDouyin() => SetExclusivePlatform(AdPlatform.DouyinMiniGame);
+    [MenuItem(MGKitEditorPaths.AdPlatformMenu + "启用抖音小游戏广告", false, 210)]
+    public static void EnableDouyin() => SetExclusivePlatform(MiniGamePlatform.DouyinMiniGame);
 
-    [MenuItem(MiniGameKitEditorPaths.AdPlatformMenu + "禁用抖音小游戏广告", false, 211)]
-    public static void DisableDouyin() => TogglePlatformSymbol(AdPlatform.DouyinMiniGame, false);
+    [MenuItem(MGKitEditorPaths.AdPlatformMenu + "禁用抖音小游戏广告", false, 211)]
+    public static void DisableDouyin() => TogglePlatformSymbol(MiniGamePlatform.DouyinMiniGame, false);
 
-    [MenuItem(MiniGameKitEditorPaths.AdPlatformMenu + "清除所有小游戏宏", false, 250)]
+    [MenuItem(MGKitEditorPaths.AdPlatformMenu + "清除所有小游戏宏", false, 250)]
     public static void ClearAllMiniGameSymbols()
     {
         foreach (var target in SymbolTargets)
@@ -59,7 +60,7 @@ public static class AdDefineSymbols
         Debug.Log("[AdDefineSymbols] 已清除所有小游戏平台宏（WEIXINMINIGAME / DOUYINMINIGAME）");
     }
 
-    [MenuItem(MiniGameKitEditorPaths.AdPlatformMenu + "查看当前宏定义", false, 300)]
+    [MenuItem(MGKitEditorPaths.AdPlatformMenu + "查看当前宏定义", false, 300)]
     public static void ShowCurrentSymbols()
     {
         var targets = Enum.GetValues(typeof(BuildTargetGroup))
@@ -77,7 +78,7 @@ public static class AdDefineSymbols
         }
     }
 
-    static void SetExclusivePlatform(AdPlatform platform)
+    static void SetExclusivePlatform(MiniGamePlatform platform)
     {
         foreach (var target in SymbolTargets)
             RemoveAllMiniGameSymbols(target);
@@ -102,7 +103,7 @@ public static class AdDefineSymbols
         }
     }
 
-    private static void TogglePlatformSymbol(AdPlatform platform, bool enable)
+    private static void TogglePlatformSymbol(MiniGamePlatform platform, bool enable)
     {
         if (!PlatformSymbols.TryGetValue(platform, out var symbols)) return;
 

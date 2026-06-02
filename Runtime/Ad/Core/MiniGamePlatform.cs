@@ -1,8 +1,7 @@
 ﻿/****************************************************
- * FileName:		AdPlatform
+ * FileName:		MiniGamePlatform
  * CompanyName:		苏州微游科技有限公司
- * Author:			Felix/李康康
- * Email:			kangkang.li@outlook.com
+ * Author:			Felix/李康�? * Email:			kangkang.li@outlook.com
  * CreateTime:		2026-05-18 10:00:00
  * Version:			1.0
  * UnityVersion:	2022.3.43f1c1
@@ -10,13 +9,17 @@
  *
 *****************************************************/
 
-public enum AdPlatform
+namespace MGKit
+{
+
+public enum MiniGamePlatform
 {
     Editor = 0,
     WeChatMiniGame = 1,
     DouyinMiniGame = 2,
-    Web = 3,
+    WebGL = 3,
     Android = 4,
     iOS = 5,
     CrazyGames = 6
+}
 }

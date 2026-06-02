@@ -2,11 +2,11 @@
 using UnityEngine;
 using System.IO;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     public static class TextureOptimizationTool
     {
-        [MenuItem(MiniGameKitEditorPaths.BuildOptimizeMenu + "批量关闭 UI 贴图 MipMaps (微信)", false, 20)]
+        [MenuItem(MGKitEditorPaths.BuildOptimizeMenu + "批量关闭 UI 贴图 MipMaps (微信)", false, 20)]
         public static void OptimizeUITextures()
         {
             string[] searchFolders = { "Assets/Texture/RoomIcon", "Assets/FindIt/UI" };

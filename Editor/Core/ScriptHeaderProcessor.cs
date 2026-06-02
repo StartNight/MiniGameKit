@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 新建 C# 脚本时替换模板占位符（苏州微游科技有限公司、Felix/李康康 等）。
@@ -21,7 +21,7 @@ namespace MiniGameKit.Editor
             if (!path.EndsWith(".cs"))
                 return;
 
-            var fullPath = MiniGameKitEditorPaths.ToFullPath(path);
+            var fullPath = MGKitEditorPaths.ToFullPath(path);
             ApplyTemplateAsync(fullPath);
         }
 

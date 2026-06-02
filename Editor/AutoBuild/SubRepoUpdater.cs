@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Debug = UnityEngine.Debug;
 
-namespace MiniGameKit.Editor.AutoBuild
+namespace MGKit.Editor.AutoBuild
 {
     public static class SubRepoUpdater
     {
@@ -74,7 +74,7 @@ namespace MiniGameKit.Editor.AutoBuild
             var token = AutoBuildConfig.GithubPAT;
             if (string.IsNullOrEmpty(repo) || repo == "Owner/Repo" || string.IsNullOrEmpty(token))
             {
-                EditorUtility.DisplayDialog("API 触发失败", "请先在构建配置面板 (MiniGameKit -> AutoBuild Settings) 中配置正确的 GitHub Repo (例如 StartNight/OutbreakBowling-U3D) 和 Personal Access Token (PAT)！", "确定");
+                EditorUtility.DisplayDialog("API 触发失败", "请先在构建配置面板 (MGKit -> AutoBuild Settings) 中配置正确的 GitHub Repo (例如 StartNight/OutbreakBowling-U3D) 和 Personal Access Token (PAT)！", "确定");
                 return;
             }
 
@@ -124,7 +124,7 @@ namespace MiniGameKit.Editor.AutoBuild
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         CreateNoWindow = true,
-                        WorkingDirectory = MiniGameKitEditorPaths.ProjectRoot
+                        WorkingDirectory = MGKitEditorPaths.ProjectRoot
                     }
                 };
 
@@ -164,7 +164,7 @@ namespace MiniGameKit.Editor.AutoBuild
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         CreateNoWindow = true,
-                        WorkingDirectory = MiniGameKitEditorPaths.ProjectRoot
+                        WorkingDirectory = MGKitEditorPaths.ProjectRoot
                     }
                 };
 

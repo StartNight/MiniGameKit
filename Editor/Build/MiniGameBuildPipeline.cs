@@ -20,22 +20,15 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using MGKit;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
-    public enum BuildPlatform
-    {
-        WeChatMiniGame,
-        DouyinMiniGame,
-        WebGL,
-        Android,
-        iOS,
-        CrazyGames
-    }
+    
 
     public class BuildConfig
     {
-        public BuildPlatform Platform = BuildPlatform.WebGL;
+        public MiniGamePlatform Platform = MiniGamePlatform.WebGL;
         public bool UseWeChatProvider = false;
         public bool ApplyWebGLOptimizations = false;
         public bool BuildAddressables = false;
@@ -46,13 +39,13 @@ namespace MiniGameKit.Editor
         public string OutputPath = "";
         public string DefaultOutputDir = "build/WebGL";
 
-        public static BuildConfig Create(BuildPlatform platform)
+        public static BuildConfig Create(MiniGamePlatform platform)
         {
             var config = new BuildConfig { Platform = platform };
 
             switch (platform)
             {
-                case BuildPlatform.WeChatMiniGame:
+                case MiniGamePlatform.WeChatMiniGame:
                     config.UseWeChatProvider = true;
                     // 勿默认开启：ApplyReleaseSizeOptimizations 会关闭 debugSymbolMode，导致微信 preprocessSymbols 失败
                     config.ApplyWebGLOptimizations = false;
@@ -61,14 +54,14 @@ namespace MiniGameKit.Editor
                     config.BuildAddressables = true;
 #endif
                     break;
-                case BuildPlatform.DouyinMiniGame:
+                case MiniGamePlatform.DouyinMiniGame:
                     config.UseWeChatProvider = false;
                     config.DefaultOutputDir = "build/DouyinMiniGame";
 #if UNITY_ADDRESSABLES
                     config.BuildAddressables = true;
 #endif
                     break;
-                case BuildPlatform.WebGL:
+                case MiniGamePlatform.WebGL:
                     config.UseWeChatProvider = false;
                     config.ApplyWebGLOptimizations = true;
                     config.DefaultOutputDir = "build/WebGL";
@@ -76,10 +69,10 @@ namespace MiniGameKit.Editor
                     config.BuildAddressables = true;
 #endif
                     break;
-                case BuildPlatform.Android:
+                case MiniGamePlatform.Android:
                     config.DefaultOutputDir = "build/Android";
                     break;
-                case BuildPlatform.iOS:
+                case MiniGamePlatform.iOS:
                     config.DefaultOutputDir = "build/iOS";
                     break;
             }
@@ -91,11 +84,11 @@ namespace MiniGameKit.Editor
         {
             return Platform switch
             {
-                BuildPlatform.WeChatMiniGame => BuildTarget.WebGL,
-                BuildPlatform.DouyinMiniGame => BuildTarget.WebGL,
-                BuildPlatform.WebGL => BuildTarget.WebGL,
-                BuildPlatform.Android => BuildTarget.Android,
-                BuildPlatform.iOS => BuildTarget.iOS,
+                MiniGamePlatform.WeChatMiniGame => BuildTarget.WebGL,
+                MiniGamePlatform.DouyinMiniGame => BuildTarget.WebGL,
+                MiniGamePlatform.WebGL => BuildTarget.WebGL,
+                MiniGamePlatform.Android => BuildTarget.Android,
+                MiniGamePlatform.iOS => BuildTarget.iOS,
                 _ => BuildTarget.WebGL
             };
         }
@@ -104,11 +97,11 @@ namespace MiniGameKit.Editor
         {
             return Platform switch
             {
-                BuildPlatform.WeChatMiniGame => BuildTargetGroup.WebGL,
-                BuildPlatform.DouyinMiniGame => BuildTargetGroup.WebGL,
-                BuildPlatform.WebGL => BuildTargetGroup.WebGL,
-                BuildPlatform.Android => BuildTargetGroup.Android,
-                BuildPlatform.iOS => BuildTargetGroup.iOS,
+                MiniGamePlatform.WeChatMiniGame => BuildTargetGroup.WebGL,
+                MiniGamePlatform.DouyinMiniGame => BuildTargetGroup.WebGL,
+                MiniGamePlatform.WebGL => BuildTargetGroup.WebGL,
+                MiniGamePlatform.Android => BuildTargetGroup.Android,
+                MiniGamePlatform.iOS => BuildTargetGroup.iOS,
                 _ => BuildTargetGroup.WebGL
             };
         }
@@ -117,11 +110,11 @@ namespace MiniGameKit.Editor
         {
             return Platform switch
             {
-                BuildPlatform.WeChatMiniGame => "微信小游戏",
-                BuildPlatform.DouyinMiniGame => "抖音小游戏",
-                BuildPlatform.WebGL => "WebGL",
-                BuildPlatform.Android => "Android",
-                BuildPlatform.iOS => "iOS",
+                MiniGamePlatform.WeChatMiniGame => "微信小游戏",
+                MiniGamePlatform.DouyinMiniGame => "抖音小游戏",
+                MiniGamePlatform.WebGL => "WebGL",
+                MiniGamePlatform.Android => "Android",
+                MiniGamePlatform.iOS => "iOS",
                 _ => Platform.ToString()
             };
         }
@@ -153,13 +146,13 @@ namespace MiniGameKit.Editor
             Log($"===== 开始构建: {label} =====");
 
             // ── 微信小游戏：调用插件完整「生成并转换」流程 ─────────────────
-            if (config.Platform == BuildPlatform.WeChatMiniGame)
+            if (config.Platform == MiniGamePlatform.WeChatMiniGame)
             {
                 RunWeChatBuild(config);
                 return null;
             }
 
-            if (config.Platform == BuildPlatform.DouyinMiniGame)
+            if (config.Platform == MiniGamePlatform.DouyinMiniGame)
             {
                 RunDouyinBuild(config);
                 return null;
@@ -257,7 +250,7 @@ namespace MiniGameKit.Editor
         {
             var group = config.GetBuildTargetGroup();
 
-            using (BuildEnvironmentScope.Begin(BuildPlatform.WeChatMiniGame, group))
+            using (BuildEnvironmentScope.Begin(MiniGamePlatform.WeChatMiniGame, group))
             {
                 if (config.SwitchBuildTarget
                     && !EnsureBuildTarget(BuildTarget.WebGL, group, "微信小游戏", config.Interactive))
@@ -322,9 +315,9 @@ namespace MiniGameKit.Editor
 #endif
 
                 Log("微信小游戏「生成并转换」完成");
-                var artifactDir = BuildArtifactPaths.ResolveArtifactDirectory(BuildPlatform.WeChatMiniGame, config);
-                BuildArtifactPaths.WriteCiOutputMarker(BuildPlatform.WeChatMiniGame, artifactDir);
-                BuildCiManifest.Write(BuildPlatform.WeChatMiniGame, artifactDir);
+                var artifactDir = BuildArtifactPaths.ResolveArtifactDirectory(MiniGamePlatform.WeChatMiniGame, config);
+                BuildArtifactPaths.WriteCiOutputMarker(MiniGamePlatform.WeChatMiniGame, artifactDir);
+                BuildCiManifest.Write(MiniGamePlatform.WeChatMiniGame, artifactDir);
                 return true;
             }
         }
@@ -336,7 +329,7 @@ namespace MiniGameKit.Editor
         {
             var group = config.GetBuildTargetGroup();
 
-            using (BuildEnvironmentScope.Begin(BuildPlatform.DouyinMiniGame, group))
+            using (BuildEnvironmentScope.Begin(MiniGamePlatform.DouyinMiniGame, group))
             {
                 if (config.SwitchBuildTarget
                     && !EnsureBuildTarget(BuildTarget.WebGL, group, "抖音小游戏", config.Interactive))
@@ -381,8 +374,8 @@ namespace MiniGameKit.Editor
                 }
 
                 Log($"抖音小游戏构建完成: {outputPath}");
-                BuildArtifactPaths.WriteCiOutputMarker(BuildPlatform.DouyinMiniGame, outputPath);
-                BuildCiManifest.Write(BuildPlatform.DouyinMiniGame, outputPath);
+                BuildArtifactPaths.WriteCiOutputMarker(MiniGamePlatform.DouyinMiniGame, outputPath);
+                BuildCiManifest.Write(MiniGamePlatform.DouyinMiniGame, outputPath);
                 return true;
             }
         }
@@ -393,17 +386,17 @@ namespace MiniGameKit.Editor
         /// 平台专属宏定义映射表。
         /// 每个平台只添加自己的宏，构建结束后通过 RestoreScriptingDefines 恢复原状。
         /// </summary>
-        private static readonly Dictionary<BuildPlatform, string> PlatformDefines = new Dictionary<BuildPlatform, string>
+        private static readonly Dictionary<MiniGamePlatform, string> PlatformDefines = new Dictionary<MiniGamePlatform, string>
         {
-            { BuildPlatform.WeChatMiniGame, "WEIXINMINIGAME" },
-            { BuildPlatform.DouyinMiniGame, "DOUYINMINIGAME" },
+            { MiniGamePlatform.WeChatMiniGame, "WEIXINMINIGAME" },
+            { MiniGamePlatform.DouyinMiniGame, "DOUYINMINIGAME" },
         };
 
         /// <summary>
         /// 为指定平台写入对应的 Scripting Define Symbol，并返回修改前的原始定义列表（用于事后还原）。
         /// 对于没有专属宏的平台（WebGL / Android / iOS），此方法会移除所有平台专属宏。
         /// </summary>
-        public static string ApplyScriptingDefines(BuildPlatform platform, BuildTargetGroup group)
+        public static string ApplyScriptingDefines(MiniGamePlatform platform, BuildTargetGroup group)
         {
             PlayerSettings.GetScriptingDefineSymbolsForGroup(group, out var currentDefines);
             var defineList = new List<string>(currentDefines);

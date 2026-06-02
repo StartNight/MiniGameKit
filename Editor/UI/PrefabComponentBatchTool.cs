@@ -2,17 +2,17 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 为指定目录下的 Prefab 批量添加组件（通过类型名反射，避免 Editor 程序集依赖游戏脚本）。
     /// </summary>
     public static class PrefabComponentBatchTool
     {
-        [MenuItem(MiniGameKitEditorPaths.UiMenu + "批量添加组件到 Prefab", false, 30)]
+        [MenuItem(MGKitEditorPaths.UiMenu + "批量添加组件到 Prefab", false, 30)]
         public static void AddComponentToPrefabs()
         {
-            var typeName = MiniGameKitEditorPaths.PrefabComponentTypeName;
+            var typeName = MGKitEditorPaths.PrefabComponentTypeName;
             var componentType = ReflectionTypeUtility.FindType(typeName);
             if (componentType == null)
             {
@@ -26,7 +26,7 @@ namespace MiniGameKit.Editor
                 return;
             }
 
-            var roots = MiniGameKitEditorPaths.SplitSemicolonPaths(MiniGameKitEditorPaths.PrefabComponentBatchRoots);
+            var roots = MGKitEditorPaths.SplitSemicolonPaths(MGKitEditorPaths.PrefabComponentBatchRoots);
             if (roots.Length == 0)
             {
                 Debug.LogWarning("[PrefabComponentBatch] 未配置 Prefab 搜索目录。");

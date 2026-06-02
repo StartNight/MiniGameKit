@@ -11,6 +11,9 @@
 *****************************************************/
 
 using System;
+namespace MGKit
+{
+
 
 public interface IAdUnit : IDisposable
 {
@@ -45,4 +48,6 @@ public interface ICustomAdUnit : IAdUnit
 {
     void SetPosition(int left, int top);
     void SetSize(int width, int height);
+}
+
 }

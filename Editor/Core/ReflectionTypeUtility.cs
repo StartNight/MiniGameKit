@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     internal static class ReflectionTypeUtility
     {

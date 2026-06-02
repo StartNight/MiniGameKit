@@ -1,25 +1,25 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
-    public class MiniGameKitEditorSettingsWindow : EditorWindow
+    public class MGKitEditorSettingsWindow : EditorWindow
     {
         int _tab;
         string _scriptFoldersRaw;
 
-        [MenuItem(MiniGameKitEditorPaths.MenuRoot + "项目设置", false, 0)]
-        public static void Open() => GetWindow<MiniGameKitEditorSettingsWindow>("MiniGameKit 设置");
+        [MenuItem(MGKitEditorPaths.MenuRoot + "项目设置", false, 0)]
+        public static void Open() => GetWindow<MGKitEditorSettingsWindow>("MGKit 设置");
 
         public static void OpenAndroidTab()
         {
-            var w = GetWindow<MiniGameKitEditorSettingsWindow>("MiniGameKit 设置");
+            var w = GetWindow<MGKitEditorSettingsWindow>("MGKit 设置");
             w._tab = 4;
         }
 
         void OnEnable()
         {
-            _scriptFoldersRaw = string.Join(";", MiniGameKitEditorPaths.FontScanScriptFolders);
+            _scriptFoldersRaw = string.Join(";", MGKitEditorPaths.FontScanScriptFolders);
         }
 
         void OnGUI()
@@ -49,60 +49,60 @@ namespace MiniGameKit.Editor
 
         void DrawLocalization()
         {
-            MiniGameKitEditorPaths.I2CsvAssetPath =
-                EditorGUILayout.TextField("I2 CSV", MiniGameKitEditorPaths.I2CsvAssetPath);
-            MiniGameKitEditorPaths.I2LanguageSourceAssetPath =
-                EditorGUILayout.TextField("LanguageSource Asset", MiniGameKitEditorPaths.I2LanguageSourceAssetPath);
+            MGKitEditorPaths.I2CsvAssetPath =
+                EditorGUILayout.TextField("I2 CSV", MGKitEditorPaths.I2CsvAssetPath);
+            MGKitEditorPaths.I2LanguageSourceAssetPath =
+                EditorGUILayout.TextField("LanguageSource Asset", MGKitEditorPaths.I2LanguageSourceAssetPath);
         }
 
         void DrawFont()
         {
-            MiniGameKitEditorPaths.FontScanTargetTtf =
-                EditorGUILayout.TextField("静态 TTF", MiniGameKitEditorPaths.FontScanTargetTtf);
-            MiniGameKitEditorPaths.FontSubsetOutputFolder =
-                EditorGUILayout.TextField("字符集输出目录", MiniGameKitEditorPaths.FontSubsetOutputFolder);
-            MiniGameKitEditorPaths.FontScanLocalizationFolder =
-                EditorGUILayout.TextField("本地化扫描目录", MiniGameKitEditorPaths.FontScanLocalizationFolder);
-            MiniGameKitEditorPaths.FontScanPrefabRoots =
-                EditorGUILayout.TextField("Prefab 扫描根目录", MiniGameKitEditorPaths.FontScanPrefabRoots);
+            MGKitEditorPaths.FontScanTargetTtf =
+                EditorGUILayout.TextField("静态 TTF", MGKitEditorPaths.FontScanTargetTtf);
+            MGKitEditorPaths.FontSubsetOutputFolder =
+                EditorGUILayout.TextField("字符集输出目录", MGKitEditorPaths.FontSubsetOutputFolder);
+            MGKitEditorPaths.FontScanLocalizationFolder =
+                EditorGUILayout.TextField("本地化扫描目录", MGKitEditorPaths.FontScanLocalizationFolder);
+            MGKitEditorPaths.FontScanPrefabRoots =
+                EditorGUILayout.TextField("Prefab 扫描根目录", MGKitEditorPaths.FontScanPrefabRoots);
 
             EditorGUILayout.LabelField("脚本扫描目录（分号分隔）");
             _scriptFoldersRaw = EditorGUILayout.TextField(_scriptFoldersRaw);
             if (GUI.changed)
-                MiniGameKitEditorPaths.FontScanScriptFolders = _scriptFoldersRaw.Split(';');
+                MGKitEditorPaths.FontScanScriptFolders = _scriptFoldersRaw.Split(';');
         }
 
         void DrawOptimization()
         {
-            MiniGameKitEditorPaths.UiPrefabSearchRoot =
-                EditorGUILayout.TextField("UI Prefab 根目录", MiniGameKitEditorPaths.UiPrefabSearchRoot);
-            MiniGameKitEditorPaths.TextureAstcSearchFolders =
-                EditorGUILayout.TextField("ASTC 贴图目录 (;)", MiniGameKitEditorPaths.TextureAstcSearchFolders);
-            MiniGameKitEditorPaths.ShaderVariantCollectionAssetPath =
-                EditorGUILayout.TextField("SVC 输出路径", MiniGameKitEditorPaths.ShaderVariantCollectionAssetPath);
+            MGKitEditorPaths.UiPrefabSearchRoot =
+                EditorGUILayout.TextField("UI Prefab 根目录", MGKitEditorPaths.UiPrefabSearchRoot);
+            MGKitEditorPaths.TextureAstcSearchFolders =
+                EditorGUILayout.TextField("ASTC 贴图目录 (;)", MGKitEditorPaths.TextureAstcSearchFolders);
+            MGKitEditorPaths.ShaderVariantCollectionAssetPath =
+                EditorGUILayout.TextField("SVC 输出路径", MGKitEditorPaths.ShaderVariantCollectionAssetPath);
         }
 
         void DrawDebug()
         {
-            MiniGameKitEditorPaths.PlayerPrefsClearKeys =
-                EditorGUILayout.TextField("清理存档键名 (;)", MiniGameKitEditorPaths.PlayerPrefsClearKeys);
-            MiniGameKitEditorPaths.PrefabComponentBatchRoots =
-                EditorGUILayout.TextField("批量组件 Prefab (;)", MiniGameKitEditorPaths.PrefabComponentBatchRoots);
-            MiniGameKitEditorPaths.PrefabComponentTypeName =
-                EditorGUILayout.TextField("组件类型名", MiniGameKitEditorPaths.PrefabComponentTypeName);
+            MGKitEditorPaths.PlayerPrefsClearKeys =
+                EditorGUILayout.TextField("清理存档键名 (;)", MGKitEditorPaths.PlayerPrefsClearKeys);
+            MGKitEditorPaths.PrefabComponentBatchRoots =
+                EditorGUILayout.TextField("批量组件 Prefab (;)", MGKitEditorPaths.PrefabComponentBatchRoots);
+            MGKitEditorPaths.PrefabComponentTypeName =
+                EditorGUILayout.TextField("组件类型名", MGKitEditorPaths.PrefabComponentTypeName);
         }
 
         void DrawAndroid()
         {
             EditorGUILayout.HelpBox("密码保存在本机 EditorPrefs，请勿提交到版本库。", MessageType.Info);
-            MiniGameKitEditorPaths.AndroidKeystorePath =
-                EditorGUILayout.TextField("Keystore 路径", MiniGameKitEditorPaths.AndroidKeystorePath);
-            MiniGameKitEditorPaths.AndroidKeystorePass =
-                EditorGUILayout.PasswordField("Keystore 密码", MiniGameKitEditorPaths.AndroidKeystorePass);
-            MiniGameKitEditorPaths.AndroidKeyaliasName =
-                EditorGUILayout.TextField("Keyalias", MiniGameKitEditorPaths.AndroidKeyaliasName);
-            MiniGameKitEditorPaths.AndroidKeyaliasPass =
-                EditorGUILayout.PasswordField("Keyalias 密码", MiniGameKitEditorPaths.AndroidKeyaliasPass);
+            MGKitEditorPaths.AndroidKeystorePath =
+                EditorGUILayout.TextField("Keystore 路径", MGKitEditorPaths.AndroidKeystorePath);
+            MGKitEditorPaths.AndroidKeystorePass =
+                EditorGUILayout.PasswordField("Keystore 密码", MGKitEditorPaths.AndroidKeystorePass);
+            MGKitEditorPaths.AndroidKeyaliasName =
+                EditorGUILayout.TextField("Keyalias", MGKitEditorPaths.AndroidKeyaliasName);
+            MGKitEditorPaths.AndroidKeyaliasPass =
+                EditorGUILayout.PasswordField("Keyalias 密码", MGKitEditorPaths.AndroidKeyaliasPass);
 
             if (GUILayout.Button("立即应用到 PlayerSettings"))
                 AndroidKeystoreConfigurator.ApplyIfConfigured();

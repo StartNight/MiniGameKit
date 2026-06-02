@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     public static class WeChatLoadingPagePatchTool
     {
@@ -45,7 +45,7 @@ namespace MiniGameKit.Editor
             @"(iconConfig:\s*\{\s*visible:\s*true,\s*style:\s*\{\s*)width:\s*\d+,\s*height:\s*\d+,\s*bottom:\s*\d+,",
             RegexOptions.Singleline);
 
-        [MenuItem(MiniGameKitEditorPaths.BuildWeChatMenu + "应用加载页配置", false, 56)]
+        [MenuItem(MGKitEditorPaths.BuildWeChatMenu + "应用加载页配置", false, 56)]
         public static void ApplyLoadingPageConfig()
         {
             if (!File.Exists(ToFullPath(SourceLogoPath)))

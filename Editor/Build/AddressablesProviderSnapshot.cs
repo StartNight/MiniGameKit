@@ -6,7 +6,7 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>构建前捕获 Addressables Bundled Provider，构建结束后还原（方案 4A）。</summary>
     [Serializable]

@@ -11,48 +11,50 @@
 *****************************************************/
 
 using UnityEngine;
+namespace MGKit
+{
 
 public static class AdPlatformDetector
 {
     /// <summary>
-    /// 可选平台覆盖：在 MiniGameKit 初始化前设置，可强制指定广告平台。
+    /// 可选平台覆盖：在 MGKit 初始化前设置，可强制指定广告平台。
     /// 当自动检测无法正确识别平台时使用（例如通过 WX 插件导出微信小游戏）。
     /// </summary>
-    public static AdPlatform? PlatformOverride { get; set; }
+    public static MiniGamePlatform? PlatformOverride { get; set; }
 
-    public static AdPlatform Detect()
+    public static MiniGamePlatform Detect()
     {
         if (PlatformOverride.HasValue)
             return PlatformOverride.Value;
 
 #if UNITY_EDITOR
-        return AdPlatform.Editor;
+        return MiniGamePlatform.Editor;
 #elif CRAZYGAMES
-        return AdPlatform.CrazyGames;
+        return MiniGamePlatform.CrazyGames;
 #elif WEIXINMINIGAME
-        return AdPlatform.WeChatMiniGame;
+        return MiniGamePlatform.WeChatMiniGame;
 #elif DOUYINMINIGAME
-        return AdPlatform.DouyinMiniGame;
+        return MiniGamePlatform.DouyinMiniGame;
 #elif UNITY_WEBGL
         // WX-WASM-SDK-V2 插件在 WebGL 构建下始终编译 WeChatWASM.WX。
         // 检测到 WX SDK 存在时优先使用微信适配器（兼容 WX 插件导出路径）。
         if (IsWXRuntimePresent())
-            return AdPlatform.WeChatMiniGame;
+            return MiniGamePlatform.WeChatMiniGame;
         
 #if CRAZYGAMES
         // 检测 CrazySDK 是否可用
         if (CrazyGames.CrazySDK.IsAvailable)
-            return AdPlatform.CrazyGames;
+            return MiniGamePlatform.CrazyGames;
 #endif
 
-        return AdPlatform.Web;
+        return MiniGamePlatform.WebGL;
 #elif UNITY_ANDROID
-        return AdPlatform.Android;
+        return MiniGamePlatform.Android;
 #elif UNITY_IOS
-        return AdPlatform.iOS;
+        return MiniGamePlatform.iOS;
 #else
         Debug.LogWarning("[Ad] 未识别的平台，降级为Editor模式");
-        return AdPlatform.Editor;
+        return MiniGamePlatform.Editor;
 #endif
     }
 
@@ -71,18 +73,19 @@ public static class AdPlatformDetector
 #endif
     }
 
-    public static string GetPlatformName(AdPlatform platform)
+    public static string GetPlatformName(MiniGamePlatform platform)
     {
         return platform switch
         {
-            AdPlatform.Editor => "Editor(模拟)",
-            AdPlatform.WeChatMiniGame => "微信小游戏",
-            AdPlatform.DouyinMiniGame => "抖音小游戏",
-            AdPlatform.Web => "Web(H5)",
-            AdPlatform.Android => "Android",
-            AdPlatform.iOS => "iOS",
-            AdPlatform.CrazyGames => "CrazyGames",
+            MiniGamePlatform.Editor => "Editor(模拟)",
+            MiniGamePlatform.WeChatMiniGame => "微信小游戏",
+            MiniGamePlatform.DouyinMiniGame => "抖音小游戏",
+            MiniGamePlatform.WebGL => "Web(H5)",
+            MiniGamePlatform.Android => "Android",
+            MiniGamePlatform.iOS => "iOS",
+            MiniGamePlatform.CrazyGames => "CrazyGames",
             _ => "未知"
         };
     }
+}
 }

@@ -13,31 +13,33 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+namespace MGKit
+{
 
 public static class PlatformSDKFactory
 {
-    private static readonly Dictionary<AdPlatform, Func<IPlatformSDK>> _creators = new Dictionary<AdPlatform, Func<IPlatformSDK>>()
+    private static readonly Dictionary<MiniGamePlatform, Func<IPlatformSDK>> _creators = new Dictionary<MiniGamePlatform, Func<IPlatformSDK>>()
     {
-        { AdPlatform.Editor, () => new EditorMockPlatform() },
+        { MiniGamePlatform.Editor, () => new EditorMockPlatform() },
 #if WEIXINMINIGAME
-        { AdPlatform.WeChatMiniGame, () => new WeChatPlatform() },
+        { MiniGamePlatform.WeChatMiniGame, () => new WeChatPlatform() },
 #endif
 #if DOUYINMINIGAME
-        { AdPlatform.DouyinMiniGame, () => new DouyinPlatform() },
+        { MiniGamePlatform.DouyinMiniGame, () => new DouyinPlatform() },
 #endif
 #if UNITY_WEBGL && !WEIXINMINIGAME && !DOUYINMINIGAME && !CRAZYGAMES
-        { AdPlatform.Web, () => new WebPlatform() },
+        { MiniGamePlatform.WebGL, () => new WebPlatform() },
 #endif
 #if UNITY_ANDROID || UNITY_IOS
-        { AdPlatform.Android, () => new MobilePlatform() },
-        { AdPlatform.iOS, () => new MobilePlatform() },
+        { MiniGamePlatform.Android, () => new MobilePlatform() },
+        { MiniGamePlatform.iOS, () => new MobilePlatform() },
 #endif
 #if CRAZYGAMES
-        { AdPlatform.CrazyGames, () => new CrazyGamesPlatform() }
+        { MiniGamePlatform.CrazyGames, () => new CrazyGamesPlatform() }
 #endif
     };
 
-    public static IPlatformSDK Create(AdPlatform platform)
+    public static IPlatformSDK Create(MiniGamePlatform platform)
     {
         if (_creators.TryGetValue(platform, out var creator))
         {
@@ -50,8 +52,9 @@ public static class PlatformSDKFactory
         return new EditorMockPlatform();
     }
 
-    public static void RegisterCreator(AdPlatform platform, Func<IPlatformSDK> creator)
+    public static void RegisterCreator(MiniGamePlatform platform, Func<IPlatformSDK> creator)
     {
         _creators[platform] = creator;
     }
+}
 }

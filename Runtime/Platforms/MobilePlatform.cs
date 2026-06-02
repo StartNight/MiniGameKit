@@ -14,10 +14,13 @@
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+namespace MGKit
+{
+
 
 public class MobilePlatform : IPlatformSDK
 {
-    public AdPlatform Platform => GetCurrentPlatform();
+    public MiniGamePlatform Platform => GetCurrentPlatform();
     public string PlatformName => IsAndroid() ? "Android" : "iOS";
     public bool IsInitialized { get; private set; }
 
@@ -42,14 +45,14 @@ public class MobilePlatform : IPlatformSDK
 #endif
     }
 
-    private static AdPlatform GetCurrentPlatform()
+    private static MiniGamePlatform GetCurrentPlatform()
     {
 #if UNITY_ANDROID
-        return AdPlatform.Android;
+        return MiniGamePlatform.Android;
 #elif UNITY_IOS
-        return AdPlatform.iOS;
+        return MiniGamePlatform.iOS;
 #else
-        return AdPlatform.Editor;
+        return MiniGamePlatform.Editor;
 #endif
     }
 

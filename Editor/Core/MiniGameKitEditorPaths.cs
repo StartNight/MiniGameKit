@@ -1,14 +1,14 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
-    /// MiniGameKit Editor 可配置路径（通过 EditorPrefs 覆盖，便于不同项目复用）。
+    /// MGKit Editor 可配置路径（通过 EditorPrefs 覆盖，便于不同项目复用）。
     /// </summary>
-    public static class MiniGameKitEditorPaths
+    public static class MGKitEditorPaths
     {
-        const string Prefix = "MiniGameKit.";
+        const string Prefix = "MGKit.";
 
         public const string MenuRoot = "Tools/Minigame/";
 

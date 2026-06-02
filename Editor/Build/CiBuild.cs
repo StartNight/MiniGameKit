@@ -6,8 +6,9 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using MGKit;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// GitHub Actions / 命令行统一构建入口。
@@ -16,15 +17,15 @@ namespace MiniGameKit.Editor
     {
         const string FlavorArg = "buildFlavor";
 
-        public static void BuildWebGL() => RunFlavor(BuildPlatform.WebGL);
+        public static void BuildWebGL() => RunFlavor(MiniGamePlatform.WebGL);
 
-        public static void BuildWeChat() => RunFlavor(BuildPlatform.WeChatMiniGame);
+        public static void BuildWeChat() => RunFlavor(MiniGamePlatform.WeChatMiniGame);
 
-        public static void BuildDouyin() => RunFlavor(BuildPlatform.DouyinMiniGame);
+        public static void BuildDouyin() => RunFlavor(MiniGamePlatform.DouyinMiniGame);
 
-        public static void BuildAndroid() => RunFlavor(BuildPlatform.Android);
+        public static void BuildAndroid() => RunFlavor(MiniGamePlatform.Android);
 
-        public static void BuildIOS() => RunFlavor(BuildPlatform.iOS);
+        public static void BuildIOS() => RunFlavor(MiniGamePlatform.iOS);
 
         public static void BuildFromAction()
         {
@@ -40,7 +41,7 @@ namespace MiniGameKit.Editor
             }
         }
 
-        static void RunFlavor(BuildPlatform platform)
+        static void RunFlavor(MiniGamePlatform platform)
         {
             var options = ParseCommandLine(out var flavorFromArgs);
             var flavor = flavorFromArgs ?? platform;
@@ -69,11 +70,11 @@ namespace MiniGameKit.Editor
 
             switch (flavor)
             {
-                case BuildPlatform.WeChatMiniGame:
+                case MiniGamePlatform.WeChatMiniGame:
                     success = MiniGameBuildPipeline.RunWeChatBuild(config);
                     break;
 
-                case BuildPlatform.DouyinMiniGame:
+                case MiniGamePlatform.DouyinMiniGame:
                     success = MiniGameBuildPipeline.RunDouyinBuild(config);
                     break;
 
@@ -98,25 +99,25 @@ namespace MiniGameKit.Editor
             EditorApplication.Exit(0);
         }
 
-        static bool EnsureBuildTargetForFlavor(BuildPlatform flavor)
+        static bool EnsureBuildTargetForFlavor(MiniGamePlatform flavor)
         {
             var target = flavor switch
             {
-                BuildPlatform.Android => BuildTarget.Android,
-                BuildPlatform.iOS => BuildTarget.iOS,
+                MiniGamePlatform.Android => BuildTarget.Android,
+                MiniGamePlatform.iOS => BuildTarget.iOS,
                 _ => BuildTarget.WebGL,
             };
             var group = flavor switch
             {
-                BuildPlatform.Android => BuildTargetGroup.Android,
-                BuildPlatform.iOS => BuildTargetGroup.iOS,
+                MiniGamePlatform.Android => BuildTargetGroup.Android,
+                MiniGamePlatform.iOS => BuildTargetGroup.iOS,
                 _ => BuildTargetGroup.WebGL,
             };
 
             return MiniGameBuildPipeline.EnsureBuildTarget(target, group, flavor.ToString(), interactive: false);
         }
 
-        static Dictionary<string, string> ParseCommandLine(out BuildPlatform? flavor)
+        static Dictionary<string, string> ParseCommandLine(out MiniGamePlatform? flavor)
         {
             flavor = null;
             var map = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -133,7 +134,7 @@ namespace MiniGameKit.Editor
                 map[key] = value;
 
                 if (key.Equals(FlavorArg, StringComparison.OrdinalIgnoreCase)
-                    && Enum.TryParse<BuildPlatform>(value, true, out var parsed))
+                    && Enum.TryParse<MiniGamePlatform>(value, true, out var parsed))
                 {
                     flavor = parsed;
                 }

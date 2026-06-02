@@ -9,7 +9,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 根据 CSV 中英译文自动为 Text / TMP 挂载 I2 Localize 并绑定 Term。
@@ -18,11 +18,11 @@ namespace MiniGameKit.Editor
     {
         string _csvPath;
 
-        [MenuItem(MiniGameKitEditorPaths.LocalizationMenu + "自动绑定 Localize 组件", false, 101)]
+        [MenuItem(MGKitEditorPaths.LocalizationMenu + "自动绑定 Localize 组件", false, 101)]
         public static void Open()
         {
             var w = GetWindow<I2LocalizeAutoBindWindow>("I2 自动绑定");
-            w._csvPath = MiniGameKitEditorPaths.I2CsvAssetPath;
+            w._csvPath = MGKitEditorPaths.I2CsvAssetPath;
         }
 
         void OnGUI()
@@ -102,7 +102,7 @@ namespace MiniGameKit.Editor
 
         static Dictionary<string, string> LoadTextToKeyMap(string csvAssetPath)
         {
-            var fullPath = MiniGameKitEditorPaths.ToFullPath(csvAssetPath);
+            var fullPath = MGKitEditorPaths.ToFullPath(csvAssetPath);
             if (!File.Exists(fullPath))
             {
                 Debug.LogError("[I2AutoBind] CSV 不存在：" + fullPath);

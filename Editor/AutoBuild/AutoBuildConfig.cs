@@ -1,10 +1,10 @@
 ﻿using UnityEditor;
 
-namespace MiniGameKit.Editor.AutoBuild
+namespace MGKit.Editor.AutoBuild
 {
     public static class AutoBuildConfig
     {
-        private const string Prefix = "MiniGameKit.AutoBuild.";
+        private const string Prefix = "MGKit.AutoBuild.";
 
         public static string GithubOwnerRepo
         {

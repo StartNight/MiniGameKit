@@ -2,13 +2,13 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor.AutoBuild
+namespace MGKit.Editor.AutoBuild
 {
     public static class GitHubActionGenerator
     {
         public static void GenerateWorkflow()
         {
-            var projectRoot = MiniGameKitEditorPaths.ProjectRoot;
+            var projectRoot = MGKitEditorPaths.ProjectRoot;
             var githubDir = Path.Combine(projectRoot, ".github", "workflows");
             if (!Directory.Exists(githubDir))
             {
@@ -25,7 +25,7 @@ namespace MiniGameKit.Editor.AutoBuild
 
         private static string GetYamlContent()
         {
-            return $@"name: MiniGameKit Auto Build
+            return $@"name: MGKit Auto Build
 
 on:
   workflow_dispatch:
@@ -96,7 +96,7 @@ jobs:
           UNITY_PASSWORD: ${{{{ secrets.UNITY_PASSWORD }}}}
         with:
           projectPath: .
-          buildMethod: MiniGameKit.Editor.CiBuild.BuildFromAction
+          buildMethod: MGKit.Editor.CiBuild.BuildFromAction
           customParameters: -buildFlavor ${{{{ env.PLATFORM }}}} -customBuildPath build/${{{{ env.PLATFORM }}}}
 
       - name: Copy Artifacts to Submodule

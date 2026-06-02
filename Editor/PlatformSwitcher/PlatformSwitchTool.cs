@@ -15,8 +15,9 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using MGKit;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     [InitializeOnLoad]
     public static class PlatformSwitchTool
@@ -32,7 +33,7 @@ namespace MiniGameKit.Editor
 
         private class PlatformConfig
         {
-            public AdPlatform Platform;
+            public MiniGamePlatform Platform;
             public string DisplayName;
             public BuildTargetGroup BuildGroup;
             public BuildTarget BuildTarget;
@@ -56,7 +57,7 @@ namespace MiniGameKit.Editor
             {
                 new PlatformConfig()
                 {
-                    Platform = AdPlatform.Editor,
+                    Platform = MiniGamePlatform.Editor,
                     DisplayName = "纯净 WebGL",
                     BuildGroup = BuildTargetGroup.WebGL,
                     BuildTarget = BuildTarget.WebGL,
@@ -65,7 +66,7 @@ namespace MiniGameKit.Editor
                 },
                 new PlatformConfig()
                 {
-                    Platform = AdPlatform.WeChatMiniGame,
+                    Platform = MiniGamePlatform.WeChatMiniGame,
                     DisplayName = "微信小游戏",
                     BuildGroup = BuildTargetGroup.WebGL,
                     BuildTarget = BuildTarget.WebGL,
@@ -77,7 +78,7 @@ namespace MiniGameKit.Editor
                 },
                 new PlatformConfig()
                 {
-                    Platform = AdPlatform.DouyinMiniGame,
+                    Platform = MiniGamePlatform.DouyinMiniGame,
                     DisplayName = "抖音小游戏",
                     BuildGroup = BuildTargetGroup.WebGL,
                     BuildTarget = BuildTarget.WebGL,
@@ -89,7 +90,7 @@ namespace MiniGameKit.Editor
                 },
                 new PlatformConfig()
                 {
-                    Platform = AdPlatform.CrazyGames,
+                    Platform = MiniGamePlatform.CrazyGames,
                     DisplayName = "CrazyGames",
                     BuildGroup = BuildTargetGroup.WebGL,
                     BuildTarget = BuildTarget.WebGL,
@@ -102,7 +103,7 @@ namespace MiniGameKit.Editor
                 },
                 new PlatformConfig()
                 {
-                    Platform = AdPlatform.Android,
+                    Platform = MiniGamePlatform.Android,
                     DisplayName = "Android (原生)",
                     BuildGroup = BuildTargetGroup.Android,
                     BuildTarget = BuildTarget.Android,
@@ -111,7 +112,7 @@ namespace MiniGameKit.Editor
                 },
                 new PlatformConfig()
                 {
-                    Platform = AdPlatform.iOS,
+                    Platform = MiniGamePlatform.iOS,
                     DisplayName = "iOS (原生)",
                     BuildGroup = BuildTargetGroup.iOS,
                     BuildTarget = BuildTarget.iOS,

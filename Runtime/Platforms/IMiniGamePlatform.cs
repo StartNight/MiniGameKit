@@ -1,4 +1,7 @@
 ﻿using System;
+namespace MGKit
+{
+
 
 public interface IMiniGamePlatform
 {
@@ -14,4 +17,6 @@ public interface IMiniGamePlatform
     void VibrateShort();
     void VibrateLong();
     void ReportGameStart();
+}
+
 }

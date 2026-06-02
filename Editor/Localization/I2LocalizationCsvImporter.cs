@@ -6,15 +6,15 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 将 CSV 词条导入 I2 LanguageSource（反射调用，不硬依赖 I2 程序集）。
     /// </summary>
     public static class I2LocalizationCsvImporter
     {
-        [MenuItem(MiniGameKitEditorPaths.LocalizationMenu + "导入 I2 CSV", false, 100)]
-        public static void ImportFromMenu() => Import(MiniGameKitEditorPaths.I2CsvAssetPath, MiniGameKitEditorPaths.I2LanguageSourceAssetPath);
+        [MenuItem(MGKitEditorPaths.LocalizationMenu + "导入 I2 CSV", false, 100)]
+        public static void ImportFromMenu() => Import(MGKitEditorPaths.I2CsvAssetPath, MGKitEditorPaths.I2LanguageSourceAssetPath);
 
         public static void Import(string csvAssetPath, string languageSourceAssetPath)
         {
@@ -24,7 +24,7 @@ namespace MiniGameKit.Editor
             }
             catch (Exception ex)
             {
-                var logPath = Path.Combine(MiniGameKitEditorPaths.ProjectRoot, "I2ImportError.txt");
+                var logPath = Path.Combine(MGKitEditorPaths.ProjectRoot, "I2ImportError.txt");
                 File.WriteAllText(logPath, ex.ToString());
                 EditorUtility.DisplayDialog("导入失败", "请查看项目根目录 I2ImportError.txt", "确定");
                 Debug.LogException(ex);
@@ -107,7 +107,7 @@ namespace MiniGameKit.Editor
             AddLanguage(sourceData, sourceDataType, "Chinese Simplified", "zh-CN");
             AddLanguage(sourceData, sourceDataType, "English", "en");
 
-            var csvFullPath = MiniGameKitEditorPaths.ToFullPath(csvAssetPath);
+            var csvFullPath = MGKitEditorPaths.ToFullPath(csvAssetPath);
             if (!File.Exists(csvFullPath))
             {
                 Debug.LogError("[I2Import] CSV 不存在：" + csvFullPath);

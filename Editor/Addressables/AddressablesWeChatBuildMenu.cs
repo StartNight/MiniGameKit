@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.ResourceManagement.Util;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// Addressables「Content Packing &amp; Loading」：切换 AssetBundle / Bundled Asset Provider。
@@ -84,7 +84,7 @@ namespace MiniGameKit.Editor
 
         // ── CI（无菜单）──────────────────────────────────────────────
 
-        /// <summary>供 CI：<c>-executeMethod MiniGameKit.Editor.AddressablesWeChatBuildMenu.BatchWeChat</c></summary>
+        /// <summary>供 CI：<c>-executeMethod MGKit.Editor.AddressablesWeChatBuildMenu.BatchWeChat</c></summary>
         public static void BatchWeChat()
         {
             if (!ApplyProviders(weChat: true))
@@ -95,7 +95,7 @@ namespace MiniGameKit.Editor
                 EditorApplication.Exit(0);
         }
 
-        /// <summary>供 CI：<c>-executeMethod MiniGameKit.Editor.AddressablesWeChatBuildMenu.BatchDefault</c></summary>
+        /// <summary>供 CI：<c>-executeMethod MGKit.Editor.AddressablesWeChatBuildMenu.BatchDefault</c></summary>
         public static void BatchDefault()
         {
             if (!ApplyProviders(weChat: false))

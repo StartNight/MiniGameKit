@@ -16,6 +16,9 @@ using UnityEngine;
 /// <summary>
 /// 兼容微信和抖音的小游戏工具包
 /// </summary>
+namespace MGKit
+{
+
 public class MiniGameKit : Singleton<MiniGameKit>
 {
     private IPlatformSDK _currentPlatform => AdManager.Instance.PlatformSDK;
@@ -40,7 +43,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
 
     private void Start()
     {
-        Debug.Log("[MiniGameKit] Start");
+        Debug.Log("[MGKit] Start");
         // 初始化移到了 AwakeOf 的 _currentPlatform.Initialize()
     }
 
@@ -53,7 +56,7 @@ public class MiniGameKit : Singleton<MiniGameKit>
     {
         if (!AdManager.Instance.IsInitialized) return false;
         var p = AdManager.Instance.CurrentPlatform;
-        return p == AdPlatform.WeChatMiniGame || p == AdPlatform.DouyinMiniGame || p == AdPlatform.CrazyGames;
+        return p == MiniGamePlatform.WeChatMiniGame || p == MiniGamePlatform.DouyinMiniGame || p == MiniGamePlatform.CrazyGames;
     }
 
     /// <summary>
@@ -208,4 +211,6 @@ public class MiniGameKit : Singleton<MiniGameKit>
         isDestroyed = true;
         // PlatformSDK is now disposed by AdManager
     }
+}
+
 }

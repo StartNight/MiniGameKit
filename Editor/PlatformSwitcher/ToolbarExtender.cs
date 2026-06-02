@@ -14,9 +14,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using MGKit;
 using UnityEngine.UIElements;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 通过 Unity 内部 Toolbar 类的 rootVisualElement 属性安全注入自定义 IMGUI 控件。

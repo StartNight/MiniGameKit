@@ -3,10 +3,13 @@ using UnityEngine;
 
 #if WEIXINMINIGAME
 using WeChatWASM;
+namespace MGKit
+{
+
 
 public class WeChatPlatform : IPlatformSDK
 {
-    public AdPlatform Platform => AdPlatform.WeChatMiniGame;
+    public MiniGamePlatform Platform => MiniGamePlatform.WeChatMiniGame;
     public string PlatformName => "微信小游戏";
     public bool IsInitialized { get; private set; }
 

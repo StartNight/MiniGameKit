@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 收集项目内使用字符：用于静态字体子集、TMP 分字体导出等。
@@ -18,32 +18,32 @@ namespace MiniGameKit.Editor
         const string CommonAscii =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-        [MenuItem(MiniGameKitEditorPaths.FontMenu + "收集全项目字符并写入 TTF", false, 200)]
+        [MenuItem(MGKitEditorPaths.FontMenu + "收集全项目字符并写入 TTF", false, 200)]
         public static void CollectProjectCharactersToTtf()
         {
             var sb = new StringBuilder();
-            foreach (var folder in MiniGameKitEditorPaths.FontScanScriptFolders)
+            foreach (var folder in MGKitEditorPaths.FontScanScriptFolders)
             {
-                var full = MiniGameKitEditorPaths.ToFullPath(folder.Trim());
+                var full = MGKitEditorPaths.ToFullPath(folder.Trim());
                 if (Directory.Exists(full))
                     sb.Append(ScanCSharpScripts(full));
             }
 
-            sb.Append(ScanLocalizationFolder(MiniGameKitEditorPaths.FontScanLocalizationFolder));
-            sb.Append(ScanPrefabsUnder(MiniGameKitEditorPaths.FontScanPrefabRoots));
+            sb.Append(ScanLocalizationFolder(MGKitEditorPaths.FontScanLocalizationFolder));
+            sb.Append(ScanPrefabsUnder(MGKitEditorPaths.FontScanPrefabRoots));
 
             var characters = Deduplicate(sb.ToString()) + CommonAscii;
-            ApplyToTrueTypeFont(MiniGameKitEditorPaths.FontScanTargetTtf, characters);
-            WriteTextFile(MiniGameKitEditorPaths.FontSubsetOutputFolder, "字符.txt", characters);
+            ApplyToTrueTypeFont(MGKitEditorPaths.FontScanTargetTtf, characters);
+            WriteTextFile(MGKitEditorPaths.FontSubsetOutputFolder, "字符.txt", characters);
             Debug.Log($"[FontCollector] 共 {characters.Length} 个不重复字符。");
         }
 
-        [MenuItem(MiniGameKitEditorPaths.FontMenu + "按 TMP 字体导出字符集", false, 201)]
+        [MenuItem(MGKitEditorPaths.FontMenu + "按 TMP 字体导出字符集", false, 201)]
         public static void ExportTmpFontCharacterSets()
         {
-            var outputFolder = MiniGameKitEditorPaths.FontSubsetOutputFolder;
-            if (!Directory.Exists(MiniGameKitEditorPaths.ToFullPath(outputFolder)))
-                Directory.CreateDirectory(MiniGameKitEditorPaths.ToFullPath(outputFolder));
+            var outputFolder = MGKitEditorPaths.FontSubsetOutputFolder;
+            if (!Directory.Exists(MGKitEditorPaths.ToFullPath(outputFolder)))
+                Directory.CreateDirectory(MGKitEditorPaths.ToFullPath(outputFolder));
 
             var fontToChars = new Dictionary<TMP_FontAsset, HashSet<char>>();
             var guids = AssetDatabase.FindAssets("t:Prefab");
@@ -120,7 +120,7 @@ namespace MiniGameKit.Editor
 
         static string ScanLocalizationFolder(string assetFolder)
         {
-            var full = MiniGameKitEditorPaths.ToFullPath(assetFolder);
+            var full = MGKitEditorPaths.ToFullPath(assetFolder);
             if (!Directory.Exists(full))
                 return string.Empty;
 
@@ -185,7 +185,7 @@ namespace MiniGameKit.Editor
 
         static void WriteTextFile(string outputAssetFolder, string fileName, string content)
         {
-            var dir = MiniGameKitEditorPaths.ToFullPath(outputAssetFolder);
+            var dir = MGKitEditorPaths.ToFullPath(outputAssetFolder);
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             File.WriteAllText(Path.Combine(dir, fileName), content, Encoding.UTF8);

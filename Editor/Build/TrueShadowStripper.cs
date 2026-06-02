@@ -3,11 +3,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     public static class TrueShadowStripper
     {
-        [MenuItem(MiniGameKitEditorPaths.BuildOptimizeMenu + "剥离 TrueShadow 并应用原生阴影 (微信)", false, 10)]
+        [MenuItem(MGKitEditorPaths.BuildOptimizeMenu + "剥离 TrueShadow 并应用原生阴影 (微信)", false, 10)]
         public static void StripTrueShadows()
         {
             string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/UI" });

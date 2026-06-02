@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using MGKit;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 构建前切换 PluginImporter（WebGL），避免微信/抖音 jslib 同包链接冲突。
@@ -110,12 +111,12 @@ namespace MiniGameKit.Editor
             }
         }
 
-        public static BuildPluginProfile ForPlatform(BuildPlatform platform) =>
+        public static BuildPluginProfile ForPlatform(MiniGamePlatform platform) =>
             platform switch
             {
-                BuildPlatform.WeChatMiniGame => BuildPluginProfile.WeChatMiniGame,
-                BuildPlatform.DouyinMiniGame => BuildPluginProfile.DouyinMiniGame,
-                BuildPlatform.WebGL => BuildPluginProfile.WebGL,
+                MiniGamePlatform.WeChatMiniGame => BuildPluginProfile.WeChatMiniGame,
+                MiniGamePlatform.DouyinMiniGame => BuildPluginProfile.DouyinMiniGame,
+                MiniGamePlatform.WebGL => BuildPluginProfile.WebGL,
                 _ => BuildPluginProfile.WebGL,
             };
 

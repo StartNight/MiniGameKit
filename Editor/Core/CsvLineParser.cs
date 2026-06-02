@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     internal static class CsvLineParser
     {

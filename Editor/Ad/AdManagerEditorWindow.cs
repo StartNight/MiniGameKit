@@ -13,13 +13,14 @@
 
 #if UNITY_EDITOR
 
-using MiniGameKit.Editor;
+using MGKit.Editor;
 using UnityEditor;
 using UnityEngine;
+using MGKit;
 
 public class AdManagerEditorWindow : EditorWindow
 {
-    private AdPlatform _selectedPlatform = AdPlatform.Editor;
+    private MiniGamePlatform _selectedPlatform = MiniGamePlatform.Editor;
     private bool _enableAd = true;
     private Vector2 _scrollPos;
 
@@ -30,7 +31,7 @@ public class AdManagerEditorWindow : EditorWindow
 
     private static AdManager _runtimeInstance;
 
-    [MenuItem(MiniGameKitEditorPaths.AdMenu + "广告管理器调试", false, 100)]
+    [MenuItem(MGKitEditorPaths.AdMenu + "广告管理器调试", false, 100)]
     public static void ShowWindow()
     {
         GetWindow<AdManagerEditorWindow>("广告管理器");
@@ -78,7 +79,7 @@ public class AdManagerEditorWindow : EditorWindow
         EditorGUILayout.LabelField("平台设置", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
 
-        _selectedPlatform = (AdPlatform)EditorGUILayout.EnumPopup("目标平台", _selectedPlatform);
+        _selectedPlatform = (MiniGamePlatform)EditorGUILayout.EnumPopup("目标平台", _selectedPlatform);
         _enableAd = EditorGUILayout.Toggle("启用广告", _enableAd);
 
         EditorGUI.indentLevel--;

@@ -1,6 +1,6 @@
 ﻿#if UNITY_EDITOR
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>WebGL 构建时小游戏原生插件（jslib 等）启用策略。</summary>
     public enum BuildPluginProfile

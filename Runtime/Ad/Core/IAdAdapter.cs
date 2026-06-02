@@ -9,10 +9,13 @@
  * Description:		广告平台适配器接口，每个平台实现此接口
  *
 *****************************************************/
+namespace MGKit
+{
+
 
 public interface IAdAdapter
 {
-    AdPlatform Platform { get; }
+    MiniGamePlatform Platform { get; }
     string PlatformName { get; }
 
     void Initialize();
@@ -21,4 +24,6 @@ public interface IAdAdapter
     IAdUnit CreateAd(AdType type, string adUnitId);
     bool IsAdSupported(AdType type);
     bool IsInitialized { get; }
+}
+
 }

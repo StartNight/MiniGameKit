@@ -3,15 +3,16 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using MGKit;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 构建期环境：宏定义、PluginProfile、Addressables Provider 的快照与还原。
     /// </summary>
     public sealed class BuildEnvironmentScope : IDisposable
     {
-        readonly BuildPlatform _platform;
+        readonly MiniGamePlatform _platform;
         readonly BuildTargetGroup _group;
         readonly string _previousDefines;
         readonly BuildPluginProfileManager.Snapshot _pluginSnapshot;
@@ -21,7 +22,7 @@ namespace MiniGameKit.Editor
         bool _disposed;
 
         BuildEnvironmentScope(
-            BuildPlatform platform,
+            MiniGamePlatform platform,
             BuildTargetGroup group,
             string previousDefines,
             BuildPluginProfileManager.Snapshot pluginSnapshot
@@ -40,7 +41,7 @@ namespace MiniGameKit.Editor
 #endif
         }
 
-        public static BuildEnvironmentScope Begin(BuildPlatform platform, BuildTargetGroup group)
+        public static BuildEnvironmentScope Begin(MiniGamePlatform platform, BuildTargetGroup group)
         {
             var pluginSnapshot = BuildPluginProfileManager.CaptureWebGlPluginStates();
 #if UNITY_ADDRESSABLES

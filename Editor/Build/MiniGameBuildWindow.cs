@@ -18,12 +18,13 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using MGKit;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     public class MiniGameBuildWindow : EditorWindow
     {
-        private BuildPlatform _platform = BuildPlatform.WebGL;
+        private MiniGamePlatform _platform = MiniGamePlatform.WebGL;
         private bool _useWeChatProvider = false;
         private bool _applyWebGLOptimizations = true;
         private bool _buildAddressables = false;
@@ -36,16 +37,16 @@ namespace MiniGameKit.Editor
         private string _buildLog = "";
         private Vector2 _logScrollPos;
 
-        private static readonly Dictionary<BuildPlatform, string> DefaultOutputDirs = new Dictionary<BuildPlatform, string>()
+        private static readonly Dictionary<MiniGamePlatform, string> DefaultOutputDirs = new Dictionary<MiniGamePlatform, string>()
         {
-            { BuildPlatform.WeChatMiniGame, "build/WeChatMiniGame" },
-            { BuildPlatform.DouyinMiniGame, "build/DouyinMiniGame" },
-            { BuildPlatform.WebGL, "build/WebGL" },
-            { BuildPlatform.Android, "build/Android" },
-            { BuildPlatform.iOS, "build/iOS" }
+            { MiniGamePlatform.WeChatMiniGame, "build/WeChatMiniGame" },
+            { MiniGamePlatform.DouyinMiniGame, "build/DouyinMiniGame" },
+            { MiniGamePlatform.WebGL, "build/WebGL" },
+            { MiniGamePlatform.Android, "build/Android" },
+            { MiniGamePlatform.iOS, "build/iOS" }
         };
 
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "构建窗口", false, 0)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "构建窗口", false, 0)]
         public static void ShowWindow()
         {
             GetWindow<MiniGameBuildWindow>("小游戏构建");
@@ -86,7 +87,7 @@ namespace MiniGameKit.Editor
             EditorGUILayout.LabelField("目标平台", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
-            var newPlatform = (BuildPlatform)EditorGUILayout.EnumPopup("构建平台", _platform);
+            var newPlatform = (MiniGamePlatform)EditorGUILayout.EnumPopup("构建平台", _platform);
             if (newPlatform != _platform)
             {
                 _platform = newPlatform;
@@ -110,7 +111,7 @@ namespace MiniGameKit.Editor
 
             _buildAddressables = EditorGUILayout.Toggle("构建 Addressables", _buildAddressables);
 
-            if (_platform == BuildPlatform.WeChatMiniGame)
+            if (_platform == MiniGamePlatform.WeChatMiniGame)
             {
                 EditorGUI.BeginDisabledGroup(true);
                 EditorGUILayout.Toggle("使用微信 Provider", true);
@@ -144,7 +145,7 @@ namespace MiniGameKit.Editor
             EditorGUILayout.LabelField("输出路径", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
-            if (_platform == BuildPlatform.WeChatMiniGame)
+            if (_platform == MiniGamePlatform.WeChatMiniGame)
             {
                 EditorGUILayout.HelpBox(
                     "微信小游戏的导出路径由微信插件配置决定（「微信小游戏 → 转换小游戏」面板中的「导出路径」），此处路径设置不生效。",
@@ -189,18 +190,18 @@ namespace MiniGameKit.Editor
             _switchBuildTarget = EditorGUILayout.Toggle("自动切换平台", _switchBuildTarget);
             _developmentBuild = EditorGUILayout.Toggle("Development Build", _developmentBuild);
 
-            if (_platform == BuildPlatform.Android)
+            if (_platform == MiniGamePlatform.Android)
             {
                 _autoRun = EditorGUILayout.Toggle("构建并运行", _autoRun);
             }
 
-            var isWebGL = _platform == BuildPlatform.WeChatMiniGame
-                || _platform == BuildPlatform.DouyinMiniGame
-                || _platform == BuildPlatform.WebGL;
+            var isWebGL = _platform == MiniGamePlatform.WeChatMiniGame
+                || _platform == MiniGamePlatform.DouyinMiniGame
+                || _platform == MiniGamePlatform.WebGL;
 
             if (isWebGL)
             {
-                if (_platform == BuildPlatform.WeChatMiniGame)
+                if (_platform == MiniGamePlatform.WeChatMiniGame)
                 {
                     EditorGUI.BeginDisabledGroup(true);
                     EditorGUILayout.Toggle("应用 WebGL 发布优化", false);
@@ -328,7 +329,7 @@ namespace MiniGameKit.Editor
 
             try
             {
-                if (config.Platform == BuildPlatform.WeChatMiniGame)
+                if (config.Platform == MiniGamePlatform.WeChatMiniGame)
                 {
                     // 微信小游戏：等同于插件「生成并转换」
                     var succeeded = MiniGameBuildPipeline.RunWeChatBuild(config);

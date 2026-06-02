@@ -5,7 +5,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     public sealed class WebGLEmscriptenArgsPreprocessor : IPreprocessBuildWithReport
     {

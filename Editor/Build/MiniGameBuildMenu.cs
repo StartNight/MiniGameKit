@@ -15,28 +15,29 @@
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using MGKit;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     public static class MiniGameBuildMenu
     {
 #if WEIXINMINIGAME
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "构建当前平台 (微信小游戏)", false, 55)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "构建当前平台 (微信小游戏)", false, 55)]
         public static void BuildWeChatMiniGame()
         {
-            var config = BuildConfig.Create(BuildPlatform.WeChatMiniGame);
+            var config = BuildConfig.Create(MiniGamePlatform.WeChatMiniGame);
             var succeeded = MiniGameBuildPipeline.RunWeChatBuild(config);
             MiniGameBuildPipeline.ShowWeChatBuildResult(succeeded);
         }
 #elif DOUYINMINIGAME
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "构建当前平台 (抖音小游戏)", false, 60)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "构建当前平台 (抖音小游戏)", false, 60)]
         public static void BuildDouyinMiniGame()
         {
-            var config = BuildConfig.Create(BuildPlatform.DouyinMiniGame);
+            var config = BuildConfig.Create(MiniGamePlatform.DouyinMiniGame);
             var succeeded = MiniGameBuildPipeline.RunDouyinBuild(config);
             if (succeeded)
             {
-                var path = BuildArtifactPaths.ResolveArtifactDirectory(BuildPlatform.DouyinMiniGame, config);
+                var path = BuildArtifactPaths.ResolveArtifactDirectory(MiniGamePlatform.DouyinMiniGame, config);
                 EditorUtility.DisplayDialog("抖音小游戏 构建完成", $"导出目录：\n{path}", "确定");
             }
             else
@@ -45,40 +46,40 @@ namespace MiniGameKit.Editor
             }
         }
 #elif CRAZYGAMES
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "构建当前平台 (CrazyGames - WebGL)", false, 65)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "构建当前平台 (CrazyGames - WebGL)", false, 65)]
         public static void BuildCrazyGames()
         {
-            QuickBuild(BuildConfig.Create(BuildPlatform.WebGL));
+            QuickBuild(BuildConfig.Create(MiniGamePlatform.WebGL));
         }
 #elif UNITY_ANDROID
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "构建当前平台 (Android)", false, 70)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "构建当前平台 (Android)", false, 70)]
         public static void BuildAndroid()
         {
-            QuickBuild(BuildConfig.Create(BuildPlatform.Android));
+            QuickBuild(BuildConfig.Create(MiniGamePlatform.Android));
         }
 
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "构建并运行当前平台 (Android)", false, 71)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "构建并运行当前平台 (Android)", false, 71)]
         public static void BuildAndRunAndroid()
         {
-            var config = BuildConfig.Create(BuildPlatform.Android);
+            var config = BuildConfig.Create(MiniGamePlatform.Android);
             config.AutoRun = true;
             QuickBuild(config);
         }
 #elif UNITY_IOS
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "构建当前平台 (iOS)", false, 80)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "构建当前平台 (iOS)", false, 80)]
         public static void BuildIOS()
         {
-            QuickBuild(BuildConfig.Create(BuildPlatform.iOS));
+            QuickBuild(BuildConfig.Create(MiniGamePlatform.iOS));
         }
 #else
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "构建当前平台 (纯净 WebGL)", false, 65)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "构建当前平台 (纯净 WebGL)", false, 65)]
         public static void BuildWebGL()
         {
-            QuickBuild(BuildConfig.Create(BuildPlatform.WebGL));
+            QuickBuild(BuildConfig.Create(MiniGamePlatform.WebGL));
         }
 #endif
 
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "诊断当前构建环境", false, 200)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "诊断当前构建环境", false, 200)]
         public static void DiagnoseBuildEnvironment()
         {
             MiniGameBuildPipeline.DiagnoseEnvironment();

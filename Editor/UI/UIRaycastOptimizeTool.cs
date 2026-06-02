@@ -4,17 +4,17 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 关闭 UI 预制体上无交互需求 Graphic 的 RaycastTarget，减少射线检测开销。
     /// </summary>
     public static class UIRaycastOptimizeTool
     {
-        [MenuItem(MiniGameKitEditorPaths.UiMenu + "关闭无用 RaycastTarget", false, 20)]
+        [MenuItem(MGKitEditorPaths.UiMenu + "关闭无用 RaycastTarget", false, 20)]
         public static void DisableUselessRaycastTargets()
         {
-            var root = MiniGameKitEditorPaths.UiPrefabSearchRoot;
+            var root = MGKitEditorPaths.UiPrefabSearchRoot;
             var guids = AssetDatabase.FindAssets("t:Prefab", new[] { root });
             var changedCount = 0;
             var modifiedPrefabs = 0;

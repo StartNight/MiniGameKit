@@ -2,6 +2,9 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting;
+namespace MGKit
+{
+
 
 [Preserve]
 public class SkipUnityLogo
@@ -28,5 +31,6 @@ public class SkipUnityLogo
         SplashScreen.Stop(SplashScreen.StopBehavior.StopImmediate);
     }
 #endif
+}
 }
 #endif

@@ -3,8 +3,9 @@
 using System;
 using System.IO;
 using UnityEngine;
+using MGKit;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// CI 构建完成后写入 manifest，供 GitHub Actions 同步到 {ProductName}-build 仓库。
@@ -22,9 +23,9 @@ namespace MiniGameKit.Editor
         public string buildRepoName;
 
         public static string ManifestPath =>
-            Path.Combine(MiniGameKitEditorPaths.ProjectRoot, "build", "ci", "manifest.json");
+            Path.Combine(MGKitEditorPaths.ProjectRoot, "build", "ci", "manifest.json");
 
-        public static void Write(BuildPlatform platform, string artifactPath)
+        public static void Write(MiniGamePlatform platform, string artifactPath)
         {
             var manifest = new BuildCiManifest
             {
@@ -54,7 +55,7 @@ namespace MiniGameKit.Editor
 
             try
             {
-                var projectRoot = MiniGameKitEditorPaths.ProjectRoot;
+                var projectRoot = MGKitEditorPaths.ProjectRoot;
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "git",

@@ -4,10 +4,13 @@ using UnityEngine;
 #if DOUYINMINIGAME
 using TTSDK;
 using TTSDK.UNBridgeLib.LitJson;
+namespace MGKit
+{
+
 
 public class DouyinPlatform : IPlatformSDK
 {
-    public AdPlatform Platform => AdPlatform.DouyinMiniGame;
+    public MiniGamePlatform Platform => MiniGamePlatform.DouyinMiniGame;
     public string PlatformName => "抖音小游戏";
     public bool IsInitialized { get; private set; }
 

@@ -5,7 +5,7 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 将指定目录下的 .cs 文件批量转换为 UTF-8（无 BOM）。
@@ -19,7 +19,7 @@ namespace MiniGameKit.Editor
         bool _includeSubfolders = true;
         int _skippedFolderCount;
 
-        [MenuItem(MiniGameKitEditorPaths.ScriptMenu + "C# 转 UTF-8 (无 BOM)", false, 100)]
+        [MenuItem(MGKitEditorPaths.ScriptMenu + "C# 转 UTF-8 (无 BOM)", false, 100)]
         public static void Open() => GetWindow<CsUtf8ConverterWindow>("CS UTF-8").Show();
 
         void OnGUI()
@@ -179,7 +179,7 @@ namespace MiniGameKit.Editor
 
         static void PingFile(string absolutePath)
         {
-            var root = MiniGameKitEditorPaths.ProjectRoot.Replace('\\', '/');
+            var root = MGKitEditorPaths.ProjectRoot.Replace('\\', '/');
             var normalized = absolutePath.Replace('\\', '/');
             if (normalized.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase))
             {
@@ -225,7 +225,7 @@ namespace MiniGameKit.Editor
 
             var folder = input.Trim().Replace('\\', '/');
             if (folder.StartsWith("Assets", StringComparison.OrdinalIgnoreCase))
-                return MiniGameKitEditorPaths.ToFullPath(folder);
+                return MGKitEditorPaths.ToFullPath(folder);
             return folder;
         }
     }

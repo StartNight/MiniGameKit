@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 一键性能护航构建工具。
@@ -9,7 +9,7 @@ namespace MiniGameKit.Editor
     public static class OneClickBuildTool
     {
 #if UNITY_ADDRESSABLES
-        [MenuItem(MiniGameKitEditorPaths.BuildMenu + "一键性能护航构建 (微信小游戏)", false, 50)]
+        [MenuItem(MGKitEditorPaths.BuildMenu + "一键性能护航构建 (微信小游戏)", false, 50)]
         public static void BuildForWeChatWithPerformanceGuard()
         {
             Debug.Log("[BuildTool] === 开始性能护航构建流程 ===");

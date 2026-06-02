@@ -13,6 +13,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+namespace MGKit
+{
+
 
 public class AdManager : MonoBehaviour
 {
@@ -31,7 +34,7 @@ public class AdManager : MonoBehaviour
         }
     }
 
-    public AdPlatform CurrentPlatform { get; private set; }
+    public MiniGamePlatform CurrentPlatform { get; private set; }
     public bool IsInitialized { get; private set; }
     public AdConfig Config { get; private set; }
 
@@ -39,7 +42,7 @@ public class AdManager : MonoBehaviour
     private readonly Dictionary<string, IAdUnit> _adUnits = new Dictionary<string, IAdUnit>();
     private bool _isDestroyed;
 
-    public event Action<AdPlatform> OnPlatformChanged;
+    public event Action<MiniGamePlatform> OnPlatformChanged;
 
     public void Initialize(AdConfig config = null)
     {
@@ -49,7 +52,7 @@ public class AdManager : MonoBehaviour
         CurrentPlatform = Config.CurrentPlatform != default ? Config.CurrentPlatform : AdPlatformDetector.Detect();
 
         PlatformSDK = PlatformSDKFactory.Create(CurrentPlatform);
-        PlatformSDK.Initialize();
+        ((IMiniGamePlatform)PlatformSDK).Initialize();
 
         IsInitialized = true;
         OnPlatformChanged?.Invoke(CurrentPlatform);
@@ -57,7 +60,7 @@ public class AdManager : MonoBehaviour
         Debug.Log($"[AdManager] 初始化完成 | 平台: {AdPlatformDetector.GetPlatformName(CurrentPlatform)} | 广告开关: {Config.EnableAd}");
     }
 
-    public void Initialize(AdPlatform targetPlatform, AdConfig config = null)
+    public void Initialize(MiniGamePlatform targetPlatform, AdConfig config = null)
     {
         if (IsInitialized) return;
 
@@ -65,7 +68,7 @@ public class AdManager : MonoBehaviour
         CurrentPlatform = targetPlatform;
 
         PlatformSDK = PlatformSDKFactory.Create(CurrentPlatform);
-        PlatformSDK.Initialize();
+        ((IMiniGamePlatform)PlatformSDK).Initialize();
 
         IsInitialized = true;
         OnPlatformChanged?.Invoke(CurrentPlatform);
@@ -356,4 +359,6 @@ public class AdManager : MonoBehaviour
             _instance = null;
         }
     }
+}
+
 }

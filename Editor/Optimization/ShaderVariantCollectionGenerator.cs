@@ -3,14 +3,14 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 从项目材质收集 Shader 变体并生成 ShaderVariantCollection 资源。
     /// </summary>
     public static class ShaderVariantCollectionGenerator
     {
-        [MenuItem(MiniGameKitEditorPaths.BuildOptimizeMenu + "生成 Shader Variant Collection", false, 40)]
+        [MenuItem(MGKitEditorPaths.BuildOptimizeMenu + "生成 Shader Variant Collection", false, 40)]
         public static void Generate()
         {
             var svc = new ShaderVariantCollection();
@@ -38,7 +38,7 @@ namespace MiniGameKit.Editor
                 }
             }
 
-            var savePath = MiniGameKitEditorPaths.ShaderVariantCollectionAssetPath;
+            var savePath = MGKitEditorPaths.ShaderVariantCollectionAssetPath;
             var dir = Path.GetDirectoryName(savePath)?.Replace('\\', '/');
             if (!string.IsNullOrEmpty(dir) && !AssetDatabase.IsValidFolder(dir))
             {

@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor.AutoBuild
+namespace MGKit.Editor.AutoBuild
 {
     public class AutoBuildWindow : EditorWindow
     {

@@ -14,10 +14,13 @@ using UnityEngine;
 
 #if CRAZYGAMES
 using CrazyGames;
+namespace MGKit
+{
+
 
 public class CrazyGamesPlatform : IPlatformSDK
 {
-    public AdPlatform Platform => AdPlatform.CrazyGames;
+    public MiniGamePlatform Platform => MiniGamePlatform.CrazyGames;
     public string PlatformName => "CrazyGames";
     public bool IsInitialized { get; private set; }
 
@@ -320,3 +323,5 @@ public class CrazyGamesPlatform : IPlatformSDK
     #endregion
 }
 #endif
+
+}

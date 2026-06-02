@@ -9,6 +9,9 @@
  * Description:		广告状态枚举定义
  *
 *****************************************************/
+namespace MGKit
+{
+
 
 public enum AdState
 {
@@ -18,4 +21,6 @@ public enum AdState
     Showing = 3,
     Closed = 4,
     Error = 5
+}
+
 }

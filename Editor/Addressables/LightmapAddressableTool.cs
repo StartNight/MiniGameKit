@@ -6,7 +6,7 @@ using System.IO;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     public static class LightmapAddressableTool
     {

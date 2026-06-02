@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// Android 签名配置（凭据存 EditorPrefs，不写死在代码中）。
@@ -15,22 +15,22 @@ namespace MiniGameKit.Editor
             ApplyIfConfigured();
         }
 
-        [MenuItem(MiniGameKitEditorPaths.AndroidMenu + "应用签名配置", false, 300)]
-        public static void OpenSettings() => MiniGameKitEditorSettingsWindow.OpenAndroidTab();
+        [MenuItem(MGKitEditorPaths.AndroidMenu + "应用签名配置", false, 300)]
+        public static void OpenSettings() => MGKitEditorSettingsWindow.OpenAndroidTab();
 
-        [MenuItem(MiniGameKitEditorPaths.AndroidMenu + "立即应用签名配置", false, 301)]
+        [MenuItem(MGKitEditorPaths.AndroidMenu + "立即应用签名配置", false, 301)]
         public static void ApplyFromMenu()
         {
             ApplyIfConfigured();
-            Debug.Log("[MiniGameKit] Android 签名配置已应用。");
+            Debug.Log("[MGKit] Android 签名配置已应用。");
         }
 
         public static void ApplyIfConfigured()
         {
-            var keystore = MiniGameKitEditorPaths.AndroidKeystorePath;
+            var keystore = MGKitEditorPaths.AndroidKeystorePath;
             if (string.IsNullOrEmpty(keystore))
             {
-                var legacy = Path.Combine(MiniGameKitEditorPaths.ProjectRoot, "key/user.keystore");
+                var legacy = Path.Combine(MGKitEditorPaths.ProjectRoot, "key/user.keystore");
                 if (File.Exists(legacy))
                     keystore = legacy;
             }
@@ -38,14 +38,14 @@ namespace MiniGameKit.Editor
             if (!string.IsNullOrEmpty(keystore) && File.Exists(keystore))
                 PlayerSettings.Android.keystoreName = keystore;
 
-            if (!string.IsNullOrEmpty(MiniGameKitEditorPaths.AndroidKeystorePass))
-                PlayerSettings.Android.keystorePass = MiniGameKitEditorPaths.AndroidKeystorePass;
+            if (!string.IsNullOrEmpty(MGKitEditorPaths.AndroidKeystorePass))
+                PlayerSettings.Android.keystorePass = MGKitEditorPaths.AndroidKeystorePass;
 
-            if (!string.IsNullOrEmpty(MiniGameKitEditorPaths.AndroidKeyaliasName))
-                PlayerSettings.Android.keyaliasName = MiniGameKitEditorPaths.AndroidKeyaliasName;
+            if (!string.IsNullOrEmpty(MGKitEditorPaths.AndroidKeyaliasName))
+                PlayerSettings.Android.keyaliasName = MGKitEditorPaths.AndroidKeyaliasName;
 
-            if (!string.IsNullOrEmpty(MiniGameKitEditorPaths.AndroidKeyaliasPass))
-                PlayerSettings.Android.keyaliasPass = MiniGameKitEditorPaths.AndroidKeyaliasPass;
+            if (!string.IsNullOrEmpty(MGKitEditorPaths.AndroidKeyaliasPass))
+                PlayerSettings.Android.keyaliasPass = MGKitEditorPaths.AndroidKeyaliasPass;
         }
     }
 }

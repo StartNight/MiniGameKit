@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 将 Prefab 内 Unity UI Text 批量替换为 TextMeshProUGUI。
@@ -21,7 +21,7 @@ namespace MiniGameKit.Editor
         bool _autoFixLinkedScripts = true;
         int _modeIndex;
 
-        [MenuItem(MiniGameKitEditorPaths.UiMenu + "Text 转 TextMeshPro", false, 150)]
+        [MenuItem(MGKitEditorPaths.UiMenu + "Text 转 TextMeshPro", false, 150)]
         public static void Open() => GetWindow<TextToTextMeshProConverterWindow>("Text → TMP");
 
         void OnGUI()
@@ -74,7 +74,7 @@ namespace MiniGameKit.Editor
         void LoadPrefabsFromFolder(string assetFolder)
         {
             _prefabPaths.Clear();
-            var full = MiniGameKitEditorPaths.ToFullPath(assetFolder);
+            var full = MGKitEditorPaths.ToFullPath(assetFolder);
             if (!Directory.Exists(full))
                 return;
 

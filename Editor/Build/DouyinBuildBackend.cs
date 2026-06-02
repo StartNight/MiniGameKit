@@ -7,7 +7,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// 抖音小游戏构建后端：反射调用 TTSDK/BGDT 构建 API（Unity 2022.3 无团结子平台时使用）。
@@ -21,7 +21,7 @@ namespace MiniGameKit.Editor
 
             if (string.IsNullOrWhiteSpace(buildPath))
             {
-                var projectRoot = MiniGameKitEditorPaths.ProjectRoot;
+                var projectRoot = MGKitEditorPaths.ProjectRoot;
                 buildPath = PathCombine(projectRoot, "build/DouyinMiniGame");
             }
 

@@ -14,10 +14,13 @@
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+namespace MGKit
+{
+
 
 public class WebPlatform : IPlatformSDK
 {
-    public AdPlatform Platform => AdPlatform.Web;
+    public MiniGamePlatform Platform => MiniGamePlatform.WebGL;
     public string PlatformName => "Web(H5)";
     public bool IsInitialized { get; private set; }
 

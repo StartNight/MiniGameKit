@@ -6,14 +6,14 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-namespace MiniGameKit.Editor
+namespace MGKit.Editor
 {
     /// <summary>
     /// WebGL CI 构建入口。本地构建请使用 MiniGameBuildWindow 或 MiniGameBuildMenu。
     /// </summary>
     /// <remarks>
-    /// CI workflow：<c>buildMethod: MiniGameKit.Editor.WebGLCiBuild.Build</c>
-    /// CI workflow (微信)：<c>buildMethod: MiniGameKit.Editor.WebGLCiBuild.BuildWeChat</c>
+    /// CI workflow：<c>buildMethod: MGKit.Editor.WebGLCiBuild.Build</c>
+    /// CI workflow (微信)：<c>buildMethod: MGKit.Editor.WebGLCiBuild.BuildWeChat</c>
     /// </remarks>
     public static class WebGLCiBuild
     {
@@ -21,7 +21,7 @@ namespace MiniGameKit.Editor
 
         const string DefaultLocalOutputDir = "build/WebGL";
 
-        const string LocalOutputPathEditorPrefKey = "MiniGameKit.WebGLCiBuild.LocalOutputPath";
+        const string LocalOutputPathEditorPrefKey = "MGKit.WebGLCiBuild.LocalOutputPath";
 
         const string BrowserWebGLTemplate = "PROJECT:WYMinigame2022";
 

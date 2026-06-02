@@ -1,9 +1,12 @@
 ﻿using System;
 using UnityEngine;
+namespace MGKit
+{
+
 
 public class EditorMockPlatform : IPlatformSDK
 {
-    public AdPlatform Platform => AdPlatform.Editor;
+    public MiniGamePlatform Platform => MiniGamePlatform.Editor;
     public string PlatformName => "Editor(模拟)";
     public bool IsInitialized { get; private set; }
 
@@ -155,4 +158,6 @@ public class EditorMockPlatform : IPlatformSDK
     }
 
     #endregion
+}
+
 }
