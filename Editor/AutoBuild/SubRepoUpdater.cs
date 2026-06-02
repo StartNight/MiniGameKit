@@ -44,6 +44,17 @@ namespace MiniGameKit.Editor.AutoBuild
         public static void TriggerViaAPI(string platform)
         {
             var repo = AutoBuildConfig.GithubOwnerRepo;
+            if (string.IsNullOrEmpty(repo) || repo == "Owner/Repo")
+            {
+                var autoRepo = GetAutoOwnerRepo();
+                if (!string.IsNullOrEmpty(autoRepo))
+                {
+                    repo = autoRepo;
+                    AutoBuildConfig.GithubOwnerRepo = repo;
+                    Debug.Log($"[AutoBuild] 自动检测到 GitHub 仓库为: {repo}");
+                }
+            }
+
             var token = AutoBuildConfig.GithubPAT;
             if (string.IsNullOrEmpty(repo) || repo == "Owner/Repo" || string.IsNullOrEmpty(token))
             {
@@ -122,6 +133,66 @@ namespace MiniGameKit.Editor.AutoBuild
                 Debug.LogException(ex);
                 return false;
             }
+        }
+        public static string GetGitOutput(string arguments)
+        {
+            try
+            {
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "git",
+                        Arguments = arguments,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = MiniGameKitEditorPaths.ProjectRoot
+                    }
+                };
+
+                process.Start();
+                string output = process.StandardOutput.ReadToEnd().Trim();
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    return null;
+                }
+                
+                return output;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static string GetAutoOwnerRepo()
+        {
+            var url = GetGitOutput("remote get-url origin");
+            if (string.IsNullOrEmpty(url)) return null;
+
+            url = url.Replace(".git", "").Trim();
+            
+            // Handle git@github.com:Owner/Repo
+            int idx = url.LastIndexOf(':');
+            if (idx > 0 && url.Contains("git@")) 
+            {
+                var parts = url.Substring(idx + 1).Split('/');
+                if (parts.Length >= 2) return $"{parts[parts.Length - 2]}/{parts[parts.Length - 1]}";
+            }
+            
+            // Handle https://github.com/Owner/Repo
+            idx = url.IndexOf("github.com/");
+            if (idx > 0)
+            {
+                var parts = url.Substring(idx + 11).Split('/');
+                if (parts.Length >= 2) return $"{parts[0]}/{parts[1]}";
+            }
+            
+            return null;
         }
     }
 }
