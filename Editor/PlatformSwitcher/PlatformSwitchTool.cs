@@ -179,6 +179,16 @@ namespace MiniGameKit.Editor
         {
             try
             {
+                // 关闭潜在的第三方 SDK 面板（如微信小游戏配置面板），防止它们在目录被移走后触发 OnDisable/OnFocus 导致 Crash
+                var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+                foreach (var w in windows)
+                {
+                    if (w != null && (w.GetType().Name.Contains("WXEditorWin") || w.GetType().Name.Contains("ByteGame")))
+                    {
+                        try { w.Close(); } catch { /* ignore */ }
+                    }
+                }
+
                 EditorUtility.DisplayProgressBar("Platform Switcher", "正在隔离不相关的 SDK 文件...", 0.2f);
                 
                 // 1. 隔离其他平台的 SDK 到 SDKs 目录
