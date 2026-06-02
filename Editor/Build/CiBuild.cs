@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 
 using System;
 using System.Collections.Generic;
@@ -25,6 +25,20 @@ namespace MiniGameKit.Editor
         public static void BuildAndroid() => RunFlavor(BuildPlatform.Android);
 
         public static void BuildIOS() => RunFlavor(BuildPlatform.iOS);
+
+        public static void BuildFromAction()
+        {
+            var options = ParseCommandLine(out var flavor);
+            if (flavor.HasValue)
+            {
+                RunFlavor(flavor.Value);
+            }
+            else
+            {
+                Debug.LogError("[CiBuild] 缺少或无法解析 -buildFlavor 参数，无法执行 Action 构建");
+                EditorApplication.Exit(101);
+            }
+        }
 
         static void RunFlavor(BuildPlatform platform)
         {

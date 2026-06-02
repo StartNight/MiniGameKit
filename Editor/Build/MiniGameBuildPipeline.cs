@@ -29,7 +29,8 @@ namespace MiniGameKit.Editor
         DouyinMiniGame,
         WebGL,
         Android,
-        iOS
+        iOS,
+        CrazyGames
     }
 
     public class BuildConfig
