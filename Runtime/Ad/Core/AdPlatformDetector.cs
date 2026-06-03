@@ -10,6 +10,8 @@
  *
 *****************************************************/
 
+using UnityEngine;
+
 namespace MGKit
 {
     public static class AdPlatformDetector
@@ -34,17 +36,6 @@ namespace MGKit
 #elif DOUYINMINIGAME
         return MiniGamePlatform.DouyinMiniGame;
 #elif UNITY_WEBGL
-        // WX-WASM-SDK-V2 插件在 WebGL 构建下始终编译 WeChatWASM.WX。
-        // 检测到 WX SDK 存在时优先使用微信适配器（兼容 WX 插件导出路径）。
-        if (IsWXRuntimePresent())
-            return MiniGamePlatform.WeChatMiniGame;
-
-#if CRAZYGAMES
-        // 检测 CrazySDK 是否可用
-        if (CrazyGames.CrazySDK.IsAvailable)
-            return MiniGamePlatform.CrazyGames;
-#endif
-
         return MiniGamePlatform.WebGL;
 #elif UNITY_ANDROID
         return MiniGamePlatform.Android;
@@ -53,21 +44,6 @@ namespace MGKit
 #else
         Debug.LogWarning("[Ad] 未识别的平台，降级为Editor模式");
         return MiniGamePlatform.Editor;
-#endif
-        }
-
-        /// <summary>
-        /// 检测当前运行时是否包含微信小游戏环境。
-        /// 在 WebGL 构建中，WX SDK 类型始终被静态链接，不能靠 Type.GetType 判断。
-        /// 通过 GetSystemInfoSync() 检查 WeChat JS 运行时是否存在来区分纯 WebGL 和微信小游戏。
-        /// </summary>
-        private static bool IsWXRuntimePresent()
-        {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            var info = WeChatWASM.WX.GetSystemInfoSync();
-            return !string.IsNullOrEmpty(info.platform);
-#else
-            return System.Type.GetType("WeChatWASM.WX, Wx") != null;
 #endif
         }
 
