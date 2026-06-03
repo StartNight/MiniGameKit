@@ -4,11 +4,12 @@ using UnityEngine;
 namespace MGKit.Editor
 {
     /// <summary>
-    /// 为 WebGL 平台批量设置 ASTC 压缩与最大尺寸。
+    /// 为 WebGL 平台批量设置贴图压缩与最大尺寸。
+    /// WebGL1 下 ASTC 通常不可用，强制改为 DXT 避免运行时解压告警。
     /// </summary>
     public static class TextureAstcOptimizer
     {
-        [MenuItem(MGKitEditorPaths.BuildOptimizeMenu + "贴图 WebGL ASTC 压缩", false, 30)]
+        [MenuItem(MGKitEditorPaths.BuildOptimizeMenu + "贴图 WebGL1 DXT 压缩", false, 30)]
         public static void OptimizeForWebGL()
         {
             var folders = MGKitEditorPaths.SplitSemicolonPaths(MGKitEditorPaths.TextureAstcSearchFolders);
@@ -35,11 +36,14 @@ namespace MGKit.Editor
                 }
 
                 var webgl = importer.GetPlatformTextureSettings("WebGL");
-                if (!webgl.overridden || webgl.format != TextureImporterFormat.ASTC_6x6)
+                var targetFormat = importer.DoesSourceTextureHaveAlpha()
+                    ? TextureImporterFormat.DXT5
+                    : TextureImporterFormat.DXT1;
+                if (!webgl.overridden || webgl.format != targetFormat)
                 {
                     webgl.overridden = true;
                     webgl.maxTextureSize = importer.maxTextureSize;
-                    webgl.format = TextureImporterFormat.ASTC_6x6;
+                    webgl.format = targetFormat;
                     importer.SetPlatformTextureSettings(webgl);
                     changed = true;
                 }
@@ -51,7 +55,7 @@ namespace MGKit.Editor
                 }
             }
 
-            Debug.Log($"[TextureAstcOptimizer] 已优化 {count} 张贴图 (WebGL ASTC_6x6)。");
+            Debug.Log($"[TextureAstcOptimizer] 已优化 {count} 张贴图 (WebGL1 DXT)。");
         }
     }
 }

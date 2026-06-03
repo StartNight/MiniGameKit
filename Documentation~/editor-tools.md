@@ -49,7 +49,7 @@
 | 菜单 | 类 | 说明 |
 |------|-----|------|
 | `Tools/Minigame/字体/收集全项目字符并写入 TTF` | `FontCharacterCollector` | 扫描脚本、本地化、Prefab 文本 → 去重 → 写入配置的 TTF + `字符.txt` |
-| `Tools/Minigame/字体/按 TMP 字体导出字符集` | `FontCharacterCollector` | 按 Prefab 中 `TMP_Text.font` 分组导出字符集文件 |
+| `Tools/Minigame/字体/按 TMP 字体导出字符集` | `FontCharacterCollector` | 按 Prefab 中 `TMP_Text.font` 分组导出字符集；**合并** `Assets/Localization` 下 CSV 与 `I2Languages.asset` 中**全部语言**译文 |
 
 ---
 

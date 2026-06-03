@@ -96,6 +96,11 @@ namespace MGKit
             CrazySDK.Game.GameplayStart();
         }
 
+        public void ReportGameStop()
+        {
+            CrazySDK.Game.GameplayStop();
+        }
+
         #endregion IMiniGamePlatform 实现 (Fallbacks)
 
         #region IAdAdapter 实现
@@ -122,6 +127,15 @@ namespace MGKit
         public bool IsAdSupported(AdType type)
         {
             return type == AdType.Banner || type == AdType.Interstitial || type == AdType.RewardedVideo;
+        }
+
+        /// <summary>
+        /// Basic Launch 阶段 CrazyGames 会禁用所有广告（错误码 adsDisabledBasicLaunch）。
+        /// 激励视频在此阶段应直接发奖，避免按钮可点但无效果导致 QA 拒审。
+        /// </summary>
+        private static bool IsAdsDisabledBasicLaunch(SdkError error)
+        {
+            return error != null && error.code == "adsDisabledBasicLaunch";
         }
 
         private class CrazyGamesBannerAdUnit : IBannerAdUnit
@@ -320,6 +334,15 @@ namespace MGKit
                     () => { },
                     (error) =>
                     {
+                        if (IsAdsDisabledBasicLaunch(error))
+                        {
+                            Debug.Log("[CrazyGamesPlatform] Basic Launch 阶段广告不可用，直接发放激励奖励");
+                            State = AdState.Closed;
+                            OnRewarded?.Invoke(this, true);
+                            OnClosed?.Invoke(this);
+                            return;
+                        }
+
                         State = AdState.Error;
                         OnError?.Invoke(this, error.message);
                     },

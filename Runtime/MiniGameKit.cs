@@ -189,11 +189,24 @@ namespace MGKit
         #region 平台兼容保留接口
 
         /// <summary>
-        /// 上报游戏开始状态
+        /// 上报进入可玩状态（微信 ReportGameStart / CrazyGames GameplayStart 等）
         /// </summary>
-        public void WXReportGameStart()
+        public void ReportGameStart()
         {
             _currentPlatform?.ReportGameStart();
+        }
+
+        /// <summary>
+        /// 上报离开可玩状态（如 CrazyGames GameplayStop）
+        /// </summary>
+        public void ReportGameStop()
+        {
+#if CRAZYGAMES
+            if (_currentPlatform is CrazyGamesPlatform crazyPlatform)
+            {
+                crazyPlatform.ReportGameStop();
+            }
+#endif
         }
 
         /// <summary>

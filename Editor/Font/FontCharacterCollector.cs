@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -45,6 +47,7 @@ namespace MGKit.Editor
             if (!Directory.Exists(MGKitEditorPaths.ToFullPath(outputFolder)))
                 Directory.CreateDirectory(MGKitEditorPaths.ToFullPath(outputFolder));
 
+            var multiLanguageChars = CollectMultiLanguageCharacterSet();
             var fontToChars = new Dictionary<TMP_FontAsset, HashSet<char>>();
             var guids = AssetDatabase.FindAssets("t:Prefab");
             for (var i = 0; i < guids.Length; i++)
@@ -57,17 +60,13 @@ namespace MGKit.Editor
 
                 foreach (var tmp in prefab.GetComponentsInChildren<TMP_Text>(true))
                 {
-                    if (tmp.font == null || string.IsNullOrEmpty(tmp.text))
+                    if (tmp.font == null)
                         continue;
 
                     if (!fontToChars.ContainsKey(tmp.font))
                         fontToChars[tmp.font] = new HashSet<char>();
 
-                    foreach (var c in tmp.text)
-                    {
-                        if (!char.IsWhiteSpace(c))
-                            fontToChars[tmp.font].Add(c);
-                    }
+                    AddCharactersFromText(fontToChars[tmp.font], tmp.text);
                 }
             }
 
@@ -75,8 +74,11 @@ namespace MGKit.Editor
 
             foreach (var kvp in fontToChars)
             {
-                if (kvp.Value.Count == 0)
+                if (kvp.Value.Count == 0 && multiLanguageChars.Count == 0)
                     continue;
+
+                foreach (var c in multiLanguageChars)
+                    kvp.Value.Add(c);
 
                 var sorted = kvp.Value.ToList();
                 sorted.Sort();
@@ -88,7 +90,23 @@ namespace MGKit.Editor
             }
 
             AssetDatabase.Refresh();
-            EditorUtility.DisplayDialog("完成", $"字符集已导出到 {outputFolder}", "确定");
+            var langCount = multiLanguageChars.Count;
+            EditorUtility.DisplayDialog(
+                "完成",
+                $"字符集已导出到 {outputFolder}\n（已合并 I2/CSV 多语言字符 {langCount} 个）",
+                "确定");
+            Debug.Log($"[FontCollector] TMP 分字体导出完成，多语言字符 {langCount} 个。");
+        }
+
+        /// <summary>
+        /// 从 I2 LanguageSource 与本地化 CSV 收集全部语言字符。
+        /// </summary>
+        public static HashSet<char> CollectMultiLanguageCharacterSet()
+        {
+            var chars = new HashSet<char>();
+            AddCharactersFromText(chars, ScanLocalizationFolder(MGKitEditorPaths.FontScanLocalizationFolder));
+            AddCharactersFromI2LanguageSource(chars);
+            return chars;
         }
 
         public static string Deduplicate(string input)
@@ -102,6 +120,80 @@ namespace MGKit.Editor
             }
 
             return sb.ToString();
+        }
+
+        private static void AddCharactersFromText(HashSet<char> chars, string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            foreach (var c in text)
+            {
+                if (!char.IsWhiteSpace(c))
+                    chars.Add(c);
+            }
+        }
+
+        private static void AddCharactersFromI2LanguageSource(HashSet<char> chars)
+        {
+            var path = MGKitEditorPaths.I2LanguageSourceAssetPath;
+            if (string.IsNullOrEmpty(path))
+                return;
+
+            var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
+            if (asset == null)
+            {
+                Debug.LogWarning("[FontCollector] 未找到 I2 LanguageSource：" + path);
+                return;
+            }
+
+            var sourceData = GetI2LanguageSourceData(asset);
+            if (sourceData == null)
+            {
+                Debug.LogWarning("[FontCollector] 无法读取 I2 mSource：" + path);
+                return;
+            }
+
+            var terms = GetReflectionMember(sourceData, "mTerms") as IList;
+            if (terms == null)
+                return;
+
+            foreach (var term in terms)
+            {
+                if (term == null)
+                    continue;
+
+                var languages = GetReflectionMember(term, "Languages") as string[];
+                if (languages == null)
+                    continue;
+
+                foreach (var translation in languages)
+                    AddCharactersFromText(chars, translation);
+            }
+        }
+
+        private static object GetI2LanguageSourceData(ScriptableObject asset)
+        {
+            var assetType = asset.GetType();
+            if (assetType.FullName != "I2.Loc.LanguageSourceAsset")
+                return null;
+
+            return GetReflectionMember(asset, "mSource");
+        }
+
+        private static object GetReflectionMember(object target, string memberName)
+        {
+            if (target == null)
+                return null;
+
+            var type = target.GetType();
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            var field = type.GetField(memberName, flags);
+            if (field != null)
+                return field.GetValue(target);
+
+            var prop = type.GetProperty(memberName, flags);
+            return prop?.GetValue(target);
         }
 
         private static string ScanCSharpScripts(string folder)
@@ -129,7 +221,7 @@ namespace MGKit.Editor
             for (var i = 0; i < files.Length; i++)
             {
                 EditorUtility.DisplayProgressBar("扫描本地化", files[i], (float)i / files.Length);
-                sb.AppendLine(File.ReadAllText(files[i]));
+                sb.AppendLine(File.ReadAllText(files[i], Encoding.UTF8));
             }
 
             EditorUtility.ClearProgressBar();
