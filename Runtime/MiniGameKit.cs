@@ -11,6 +11,7 @@
  *****************************************************/
 
 using System;
+using MGKit.Analytics;
 using UnityEngine;
 
 /// <summary>
@@ -39,6 +40,8 @@ namespace MGKit
                 _currentPlatform.OnShow += () => OnMiniGameShow?.Invoke();
                 _currentPlatform.OnHide += () => OnMiniGameHide?.Invoke();
             }
+
+            OnMiniGameHide += GameAnalytics.TrackSessionEnd;
         }
 
         private void Start()
@@ -139,12 +142,13 @@ namespace MGKit
         /// <summary>
         /// 分享 App，直接调出分享界面
         /// </summary>
-        public void ShareApp(string title = "", string query = "key1=val1&key2=val2")
+        public void ShareApp(string title = "", string query = "key1=val1&key2=val2", string analyticsEntry = "unknown", string titleKey = "")
         {
             if (string.IsNullOrEmpty(title))
             {
                 title = Application.productName;
             }
+            GameAnalytics.TrackShareInvoke(analyticsEntry, string.IsNullOrEmpty(titleKey) ? "default" : titleKey);
             _currentPlatform?.ShareApp(title, query);
         }
 
@@ -197,6 +201,15 @@ namespace MGKit
         }
 
         /// <summary>
+        /// 会话开始 + 微信 ReportGameStart（合并重复调用入口）
+        /// </summary>
+        public void ReportSessionStart(int level, bool isNewUser)
+        {
+            ReportGameStart();
+            GameAnalytics.TrackSessionStart(level, isNewUser);
+        }
+
+        /// <summary>
         /// 上报离开可玩状态（如 CrazyGames GameplayStop）
         /// </summary>
         public void ReportGameStop()
@@ -221,6 +234,7 @@ namespace MGKit
 
         private void OnDestroy()
         {
+            OnMiniGameHide -= GameAnalytics.TrackSessionEnd;
             isDestroyed = true;
             // PlatformSDK is now disposed by AdManager
         }

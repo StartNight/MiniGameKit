@@ -123,22 +123,25 @@ config.OutputPath = "";               // 空则用 DefaultOutputDir
 
 ## 7. CI / 命令行
 
-推荐统一入口 **`MiniGameKit.Editor.CiBuild`**（GitHub Actions 使用）：
+推荐统一入口 **`MGKit.Editor.CiBuild`**（GitHub Actions 使用）：
 
-| 平台 | executeMethod |
-|------|----------------|
-| WebGL H5 | `MiniGameKit.Editor.CiBuild.BuildWebGL` |
-| 微信小游戏 | `MiniGameKit.Editor.CiBuild.BuildWeChat` |
-| 抖音小游戏 | `MiniGameKit.Editor.CiBuild.BuildDouyin` |
-| Android | `MiniGameKit.Editor.CiBuild.BuildAndroid` |
-| iOS | `MiniGameKit.Editor.CiBuild.BuildIOS` |
+| 平台 | executeMethod（分平台） | Actions 统一入口 |
+|------|-------------------------|------------------|
+| WebGL H5 | `MGKit.Editor.CiBuild.BuildWebGL` | `MGKit.Editor.CiBuild.BuildFromAction` |
+| 微信小游戏 | `MGKit.Editor.CiBuild.BuildWeChat` | 同上 + `-buildFlavor WeChatMiniGame` |
+| 抖音小游戏 | `MGKit.Editor.CiBuild.BuildDouyin` | 同上 + `-buildFlavor DouyinMiniGame` |
+| Android | `MGKit.Editor.CiBuild.BuildAndroid` | 同上 + `-buildFlavor Android` |
+| iOS | `MGKit.Editor.CiBuild.BuildIOS` | 同上 + `-buildFlavor iOS` |
+| CrazyGames | — | 同上 + `-buildFlavor CrazyGames` |
+
+主仓库 **OutbreakBowling-U3D** 自动构建文档：`Docs/CI_Auto_Build.md`  
+工作流：`.github/workflows/minigame-build.yml`（产物 push 至子模块 `Builds/` → [OutbreakBowling-Build](https://github.com/StartNight/OutbreakBowling-Build)）
 
 公共参数：
 
 ```text
--projectPath <项目根>
--buildTarget WebGL|Android|iOS
--customBuildPath <输出目录>
+-buildFlavor <MiniGamePlatform>
+-customBuildPath build/<MiniGamePlatform>
 ```
 
 ### 仅 Addressables（微信 Provider）
