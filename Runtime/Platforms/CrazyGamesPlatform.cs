@@ -20,6 +20,9 @@ namespace MGKit
 {
     public class CrazyGamesPlatform : IPlatformSDK
     {
+        /// <summary>SDK locale detected after init (e.g. en-US, zh-CN). Subscribe from game code for I2.</summary>
+        public static event Action<string> OnLocaleReady;
+
         public MiniGamePlatform Platform => MiniGamePlatform.CrazyGames;
         public string PlatformName => "CrazyGames";
         public bool IsInitialized { get; private set; }
@@ -33,8 +36,26 @@ namespace MGKit
             CrazySDK.Init(() =>
             {
                 IsInitialized = true;
+                ApplyCrazyGamesLocale();
                 Debug.Log("[CrazyGamesPlatform] 大一统SDK初始化完成");
             });
+        }
+
+        private static void ApplyCrazyGamesLocale()
+        {
+            try
+            {
+                var systemInfo = CrazySDK.User.SystemInfo;
+                var locale = systemInfo != null && !string.IsNullOrEmpty(systemInfo.locale)
+                    ? systemInfo.locale
+                    : "en-US";
+                OnLocaleReady?.Invoke(locale);
+                Debug.Log($"[CrazyGamesPlatform] SDK locale: {locale}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[CrazyGamesPlatform] ApplyCrazyGamesLocale failed: {ex.Message}");
+            }
         }
 
         public void Destroy()
@@ -185,12 +206,13 @@ namespace MGKit
                 OnLoaded?.Invoke(this);
             }
 
-            public void Show()
+            public void Show(Action onDisplayed = null)
             {
                 if (_bannerGo == null) return;
                 _bannerGo.SetActive(true);
                 State = AdState.Showing;
                 CrazySDK.Banner.RefreshBanners();
+                onDisplayed?.Invoke();
             }
 
             public void Hide()
@@ -265,11 +287,12 @@ namespace MGKit
                 OnLoaded?.Invoke(this);
             }
 
-            public void Show()
+            public void Show(Action onDisplayed = null)
             {
                 if (State != AdState.Loaded) return;
 
                 State = AdState.Showing;
+                onDisplayed?.Invoke();
                 CrazySDK.Ad.RequestAd(CrazyAdType.Midgame,
                     () => { },
                     (error) =>
@@ -325,11 +348,12 @@ namespace MGKit
                 OnLoaded?.Invoke(this);
             }
 
-            public void Show()
+            public void Show(Action onDisplayed = null)
             {
                 if (State != AdState.Loaded) return;
 
                 State = AdState.Showing;
+                onDisplayed?.Invoke();
                 CrazySDK.Ad.RequestAd(CrazyAdType.Rewarded,
                     () => { },
                     (error) =>

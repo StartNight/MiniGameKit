@@ -172,11 +172,12 @@ public class DouyinPlatform : IPlatformSDK
             };
         }
 
-        public void Show()
+        public void Show(Action onDisplayed = null)
         {
             if (_isDestroyed || _bannerAd == null) return;
             _bannerAd.Show();
             State = AdState.Showing;
+            onDisplayed?.Invoke();
         }
 
         public void Hide()
@@ -244,11 +245,12 @@ public class DouyinPlatform : IPlatformSDK
             };
         }
 
-        public void Show()
+        public void Show(Action onDisplayed = null)
         {
             if (_isDestroyed || _interstitialAd == null) return;
             _interstitialAd.Show();
             State = AdState.Showing;
+            onDisplayed?.Invoke();
         }
 
         public void Hide() { }
@@ -312,11 +314,12 @@ public class DouyinPlatform : IPlatformSDK
             _rewardedVideoAd.Load();
         }
 
-        public void Show()
+        public void Show(Action onDisplayed = null)
         {
             if (_isDestroyed || _rewardedVideoAd == null) return;
             _rewardedVideoAd.Show();
             State = AdState.Showing;
+            onDisplayed?.Invoke();
         }
 
         public void Hide() { }
@@ -353,7 +356,11 @@ public class DouyinPlatform : IPlatformSDK
             OnLoaded?.Invoke(this);
         }
 
-        public void Show() { State = AdState.Showing; }
+        public void Show(Action onDisplayed = null)
+        {
+            State = AdState.Showing;
+            onDisplayed?.Invoke();
+        }
         public void Hide() { }
         public void SetPosition(int left, int top) { }
         public void SetSize(int width, int height) { }

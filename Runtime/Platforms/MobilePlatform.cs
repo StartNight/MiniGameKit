@@ -249,11 +249,12 @@ public class MobilePlatform : IPlatformSDK
             OnLoaded?.Invoke(this);
         }
 
-        public void Show()
+        public void Show(Action onDisplayed = null)
         {
             if (State != AdState.Loaded && State != AdState.Loading) return;
             NativeShow(ToNativeAdType(Type), AdUnitId);
             State = AdState.Showing;
+            onDisplayed?.Invoke();
         }
 
         public void Hide()

@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 namespace MGKit
@@ -192,7 +193,7 @@ namespace MGKit
             }
         }
 
-        public void ShowRewardedVideo(string adUnitId, Action<bool> onRewardResult)
+        public void ShowRewardedVideo(string adUnitId, Action<bool> onRewardResult, Action onAdDisplayed = null, CancellationToken cancellationToken = default)
         {
             if (!IsInitialized)
             {
@@ -230,14 +231,25 @@ namespace MGKit
                 rewardedAd.OnRewarded -= OnRewardedHandler;
                 rewardedAd.OnLoaded -= OnLoadedHandler;
                 rewardedAd.OnError -= OnErrorHandler;
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Debug.Log($"[AdManager] 激励视频结果已忽略（请求已取消）: adUnitId={adUnitId}, rewarded={rewarded}");
+                    return;
+                }
+
                 onRewardResult?.Invoke(rewarded);
             }
 
-            void OnRewardedHandler(IRewardedVideoAdUnit unit, bool isEnded) => Finish(isEnded);
+            void OnRewardedHandler(IRewardedVideoAdUnit unit, bool isEnded)
+            {
+                Debug.Log($"[AdManager] 激励视频关闭: adUnitId={adUnitId}, isEnded={isEnded}");
+                Finish(isEnded);
+            }
 
             void OnErrorHandler(IAdUnit unit, string error)
             {
                 if (unit != rewardedAd) return;
+                Debug.LogWarning($"[AdManager] 激励视频错误: adUnitId={adUnitId}, error={error}");
                 Finish(false);
             }
 
@@ -247,7 +259,7 @@ namespace MGKit
                 rewardedAd.OnLoaded -= OnLoadedHandler;
                 if (rewardedAd.State == AdState.Loaded)
                 {
-                    rewardedAd.Show();
+                    rewardedAd.Show(onAdDisplayed);
                 }
             }
 
@@ -256,7 +268,7 @@ namespace MGKit
 
             if (rewardedAd.State == AdState.Loaded)
             {
-                rewardedAd.Show();
+                rewardedAd.Show(onAdDisplayed);
             }
             else
             {

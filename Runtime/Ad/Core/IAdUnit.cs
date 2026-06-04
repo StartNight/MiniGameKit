@@ -22,7 +22,7 @@ namespace MGKit
 
         void Load();
 
-        void Show();
+        void Show(Action onDisplayed = null);
 
         void Hide();
 

@@ -11,6 +11,7 @@
  *****************************************************/
 
 using System;
+using System.Threading;
 using MGKit.Analytics;
 using UnityEngine;
 
@@ -74,14 +75,14 @@ namespace MGKit
         /// <summary>
         /// 统一的激励视频展示接口（不干涉 Time.timeScale）
         /// </summary>
-        public void ShowRewardedVideo(string adId, Action<bool> onRewardResult)
+        public void ShowRewardedVideo(string adId, Action<bool> onRewardResult, Action onAdDisplayed = null, CancellationToken cancellationToken = default)
         {
             if (!IsMiniGamePlatform())
             {
                 onRewardResult?.Invoke(true);
                 return;
             }
-            AdManager.Instance.ShowRewardedVideo(adId, onRewardResult);
+            AdManager.Instance.ShowRewardedVideo(adId, onRewardResult, onAdDisplayed, cancellationToken);
         }
 
         /// <summary>

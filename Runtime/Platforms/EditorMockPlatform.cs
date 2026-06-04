@@ -128,7 +128,7 @@ namespace MGKit
                 OnLoaded?.Invoke(this);
             }
 
-            public void Show()
+            public void Show(Action onDisplayed = null)
             {
                 if (State != AdState.Loaded)
                 {
@@ -137,6 +137,7 @@ namespace MGKit
                 }
                 State = AdState.Showing;
                 Debug.Log($"[Ad-Editor] 展示 {Type} 广告: {AdUnitId}");
+                onDisplayed?.Invoke();
 
                 // 如果是激励视频，直接模拟看完并发放奖励
                 if (Type == AdType.RewardedVideo)

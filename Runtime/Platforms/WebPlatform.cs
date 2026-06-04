@@ -158,11 +158,12 @@ public class WebPlatform : IPlatformSDK
             OnLoaded?.Invoke(this);
         }
 
-        public void Show()
+        public void Show(Action onDisplayed = null)
         {
             if (State != AdState.Loaded && State != AdState.Loading) return;
             WebAd_Show(ToJsAdType(Type), AdUnitId);
             State = AdState.Showing;
+            onDisplayed?.Invoke();
         }
 
         public void Hide()
