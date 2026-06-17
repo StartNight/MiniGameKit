@@ -31,7 +31,7 @@ namespace MGKit
             return MiniGamePlatform.Editor;
 #elif CRAZYGAMES
             return MiniGamePlatform.CrazyGames;
-#elif WEIXINMINIGAME
+#elif MGKIT_WECHAT
         return MiniGamePlatform.WeChatMiniGame;
 #elif DOUYINMINIGAME
         return MiniGamePlatform.DouyinMiniGame;

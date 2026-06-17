@@ -21,13 +21,13 @@ namespace MGKit
         private static readonly Dictionary<MiniGamePlatform, Func<IPlatformSDK>> _creators = new Dictionary<MiniGamePlatform, Func<IPlatformSDK>>()
     {
         { MiniGamePlatform.Editor, () => new EditorMockPlatform() },
-#if WEIXINMINIGAME
+#if MGKIT_WECHAT
         { MiniGamePlatform.WeChatMiniGame, () => new WeChatPlatform() },
 #endif
 #if DOUYINMINIGAME
         { MiniGamePlatform.DouyinMiniGame, () => new DouyinPlatform() },
 #endif
-#if UNITY_WEBGL && !WEIXINMINIGAME && !DOUYINMINIGAME && !CRAZYGAMES
+#if UNITY_WEBGL && !MGKIT_WECHAT && !DOUYINMINIGAME && !CRAZYGAMES
         { MiniGamePlatform.WebGL, () => new WebPlatform() },
 #endif
 #if UNITY_ANDROID || UNITY_IOS

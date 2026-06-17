@@ -398,8 +398,13 @@ namespace MGKit.Editor
         /// </summary>
         private static readonly Dictionary<MiniGamePlatform, string> PlatformDefines = new Dictionary<MiniGamePlatform, string>
         {
-            { MiniGamePlatform.WeChatMiniGame, "WEIXINMINIGAME" },
-            { MiniGamePlatform.DouyinMiniGame, "DOUYINMINIGAME" },
+            { MiniGamePlatform.WeChatMiniGame, MGKitScriptingDefines.WeChat },
+            { MiniGamePlatform.DouyinMiniGame, MGKitScriptingDefines.Douyin },
+        };
+
+        private static readonly string[] LegacyPlatformMacros =
+        {
+            MGKitScriptingDefines.LegacyWeChatPluginMacro,
         };
 
         /// <summary>
@@ -412,8 +417,8 @@ namespace MGKit.Editor
             var defineList = new List<string>(currentDefines);
             var originalDefines = string.Join(";", defineList);
 
-            // 移除所有平台专属宏，避免旧宏残留
-            foreach (var define in PlatformDefines.Values)
+            // 移除所有平台专属宏及与微信插件冲突的废弃宏
+            foreach (var define in PlatformDefines.Values.Concat(LegacyPlatformMacros))
                 defineList.Remove(define);
 
             // 添加当前平台对应的宏
@@ -422,7 +427,7 @@ namespace MGKit.Editor
                 // CI 环境可能缺少平台 SDK 程序集（例如 WeChatWASM）。此时写入宏会触发编译错误（CS0246）。
                 if (platform == MiniGamePlatform.WeChatMiniGame && !IsWeChatWasmAvailable())
                 {
-                    Log("未检测到 WeChatWASM 程序集，跳过写入 WEIXINMINIGAME 宏（将使用 WebGL 回退构建）。");
+                    Log($"未检测到 WeChatWASM 程序集，跳过写入 {MGKitScriptingDefines.WeChat} 宏（将使用 WebGL 回退构建）。");
                 }
                 else
                 {
@@ -436,7 +441,7 @@ namespace MGKit.Editor
             return originalDefines;
         }
 
-        static bool IsWeChatWasmAvailable()
+        public static bool IsWeChatWasmAvailable()
         {
             // 只做存在性判断，避免直接引用 WeChatWASM 导致编译依赖。
             return Type.GetType("WeChatWASM.WX, Assembly-CSharp") != null
@@ -550,11 +555,7 @@ namespace MGKit.Editor
         {
             if (succeeded)
             {
-#if WEIXINMINIGAME
-                var dstPath = WeChatWASM.WXConvertCore.config?.ProjectConf?.DST ?? "（请查看微信小游戏插件配置中的导出路径）";
-#else
-                var dstPath = "（请查看微信小游戏插件配置中的导出路径）";
-#endif
+                var dstPath = TryGetWeChatExportDst() ?? "（请查看微信小游戏插件配置中的导出路径）";
                 EditorUtility.DisplayDialog("微信小游戏 构建完成",
                     $"生成并转换已完成。\n导出目录：\n{dstPath}\n\n请用微信开发者工具打开该目录。",
                     "确定");
@@ -585,7 +586,7 @@ namespace MGKit.Editor
         }
 
         /// <summary>
-        /// 通过反射调用微信导出 API，避免依赖编译期宏 WEIXINMINIGAME。
+        /// 通过反射调用微信导出 API，避免依赖编译期宏 MGKIT_WECHAT。
         /// </summary>
         static bool TryRunWeChatExport(out string exportError)
         {
@@ -629,6 +630,25 @@ namespace MGKit.Editor
             });
 
             return report != null && report.summary.result == BuildResult.Succeeded;
+        }
+
+        internal static string TryGetWeChatExportDst()
+        {
+            var wxConvertCoreType = Type.GetType("WeChatWASM.WXConvertCore, WxEditor")
+                ?? Type.GetType("WeChatWASM.WXConvertCore, Assembly-CSharp-Editor")
+                ?? Type.GetType("WeChatWASM.WXConvertCore");
+            if (wxConvertCoreType == null)
+                return null;
+
+            var configField = wxConvertCoreType.GetField("config",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var config = configField?.GetValue(null);
+            if (config == null)
+                return null;
+
+            var projectConf = config.GetType().GetField("ProjectConf")?.GetValue(config);
+            var dst = projectConf?.GetType().GetField("DST")?.GetValue(projectConf) as string;
+            return string.IsNullOrEmpty(dst) ? null : dst;
         }
     }
 }

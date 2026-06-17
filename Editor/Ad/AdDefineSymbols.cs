@@ -22,8 +22,8 @@ using MGKit;
 
 public static class AdDefineSymbols
 {
-    private const string WECHAT_SYMBOL = "WEIXINMINIGAME";
-    private const string DOUYIN_SYMBOL = "DOUYINMINIGAME";
+    private const string WECHAT_SYMBOL = MGKitScriptingDefines.WeChat;
+    private const string DOUYIN_SYMBOL = MGKitScriptingDefines.Douyin;
 
     private static readonly Dictionary<MiniGamePlatform, string[]> PlatformSymbols = new Dictionary<MiniGamePlatform, string[]>()
     {
@@ -57,7 +57,7 @@ public static class AdDefineSymbols
         foreach (var target in SymbolTargets)
             RemoveAllMiniGameSymbols(target);
 
-        Debug.Log("[AdDefineSymbols] 已清除所有小游戏平台宏（WEIXINMINIGAME / DOUYINMINIGAME）");
+        Debug.Log($"[AdDefineSymbols] 已清除所有小游戏平台宏（{MGKitScriptingDefines.WeChat} / {DOUYIN_SYMBOL} / 已移除 {MGKitScriptingDefines.LegacyWeChatPluginMacro}）");
     }
 
     [MenuItem(MGKitEditorPaths.AdPlatformMenu + "查看当前宏定义", false, 300)]
@@ -95,6 +95,7 @@ public static class AdDefineSymbols
             var list = new HashSet<string>(current.Split(';'));
             list.Remove(WECHAT_SYMBOL);
             list.Remove(DOUYIN_SYMBOL);
+            list.Remove(MGKitScriptingDefines.LegacyWeChatPluginMacro);
             PlayerSettings.SetScriptingDefineSymbolsForGroup(target, string.Join(";", list));
         }
         catch (Exception e)

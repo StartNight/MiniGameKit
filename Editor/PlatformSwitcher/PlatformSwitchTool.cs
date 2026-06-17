@@ -69,7 +69,7 @@ namespace MGKit.Editor
                     DisplayName = "微信小游戏",
                     BuildGroup = BuildTargetGroup.WebGL,
                     BuildTarget = BuildTarget.WebGL,
-                    Macro = "WEIXINMINIGAME",
+                    Macro = MGKitScriptingDefines.WeChat,
                     SDKs = new SDKPath[]
                     {
                         new SDKPath { Active = "Assets/WX-WASM-SDK-V2", Archive = "SDKs/WeChat/WX-WASM-SDK-V2" }
@@ -457,6 +457,7 @@ namespace MGKit.Editor
 
             // 移除其他所有管理中的宏
             var allManagedMacros = _configs.Where(c => !string.IsNullOrEmpty(c.Macro)).Select(c => c.Macro).ToList();
+            allManagedMacros.Add(MGKitScriptingDefines.LegacyWeChatPluginMacro);
             defines.RemoveAll(d => allManagedMacros.Contains(d));
 
             // 添加当前目标宏

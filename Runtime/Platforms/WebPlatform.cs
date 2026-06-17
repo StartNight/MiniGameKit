@@ -10,7 +10,7 @@
  *
  *****************************************************/
 
-#if UNITY_WEBGL && !WEIXINMINIGAME && !DOUYINMINIGAME && !CRAZYGAMES
+#if UNITY_WEBGL && !MGKIT_WECHAT && !DOUYINMINIGAME && !CRAZYGAMES
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;

@@ -23,11 +23,9 @@ namespace MGKit.Editor
             switch (platform)
             {
                 case MiniGamePlatform.WeChatMiniGame:
-#if WEIXINMINIGAME
-                    var dst = WeChatWASM.WXConvertCore.config?.ProjectConf?.DST;
+                    var dst = MiniGameBuildPipeline.TryGetWeChatExportDst();
                     if (!string.IsNullOrEmpty(dst))
                         return Path.GetFullPath(dst);
-#endif
                     return Path.GetFullPath(
                         Path.Combine(MGKitEditorPaths.ProjectRoot, config.DefaultOutputDir));
 

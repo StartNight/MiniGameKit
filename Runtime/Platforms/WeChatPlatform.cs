@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-#if WEIXINMINIGAME
+#if MGKIT_WECHAT
 using WeChatWASM;
 namespace MGKit
 {

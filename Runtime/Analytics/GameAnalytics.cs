@@ -22,7 +22,7 @@ namespace MGKit.Analytics
         {
 #if UNITY_EDITOR
             _reporter = new EditorAnalyticsReporter();
-#elif WEIXINMINIGAME
+#elif MGKIT_WECHAT
             _reporter = new WeChatAnalyticsReporter();
 #else
             _reporter = new NullAnalyticsReporter();

@@ -1,4 +1,4 @@
-﻿#if WEIXINMINIGAME
+﻿#if MGKIT_WECHAT
 using System.Collections.Generic;
 using WeChatWASM;
 
