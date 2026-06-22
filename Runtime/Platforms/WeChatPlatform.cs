@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 #if MGKIT_WECHAT
 using WeChatWASM;
@@ -119,48 +118,14 @@ public class WeChatPlatform : IPlatformSDK
         WX.ReportGameStart();
     }
 
-    /// <summary>
-    /// 展示全屏广告前收起 UI 焦点与键盘层，降低基础库 updateTextView 报错概率。
-    /// </summary>
     internal static void PrepareForFullscreenAdOverlay()
     {
-#if !UNITY_EDITOR
-        if (EventSystem.current != null)
-        {
-            EventSystem.current.SetSelectedGameObject(null);
-        }
-
-        try
-        {
-            WX.HideKeyboard(new HideKeyboardOption());
-        }
-        catch (Exception ex)
-        {
-            Debug.LogWarning($"[WeChatPlatform] HideKeyboard before ad: {ex.Message}");
-        }
-#endif
+        WeChatAdInputCleanup.PrepareBeforeFullscreenAd();
     }
 
-    /// <summary>
-    /// 全屏广告关闭后再次清理焦点与键盘，降低输入层残留引发的 TextView 报错。
-    /// </summary>
     internal static void CleanupAfterFullscreenAdOverlay()
     {
-#if !UNITY_EDITOR
-        if (EventSystem.current != null)
-        {
-            EventSystem.current.SetSelectedGameObject(null);
-        }
-
-        try
-        {
-            WX.HideKeyboard(new HideKeyboardOption());
-        }
-        catch (Exception ex)
-        {
-            Debug.LogWarning($"[WeChatPlatform] HideKeyboard after ad: {ex.Message}");
-        }
-#endif
+        WeChatAdInputCleanup.CleanupAfterFullscreenAd();
     }
 
     #endregion
@@ -344,6 +309,7 @@ public class WeChatPlatform : IPlatformSDK
 
             _interstitialAd.OnClose(() =>
             {
+                WeChatPlatform.CleanupAfterFullscreenAdOverlay();
                 State = AdState.Closed;
                 OnClosed?.Invoke(this);
             });
@@ -380,6 +346,9 @@ public class WeChatPlatform : IPlatformSDK
         private WXRewardedVideoAd _rewardedVideoAd;
         private bool _isDestroyed;
         private bool _isShowing;
+        private int _showRetryCount;
+        private int _nativeRecreateRetryCount;
+        private Action _pendingDisplayedCallback;
 
         public event Action<IAdUnit> OnLoaded;
         public event Action<IAdUnit, string> OnError;
@@ -397,65 +366,40 @@ public class WeChatPlatform : IPlatformSDK
         {
             if (_isDestroyed) return;
             State = AdState.Loading;
-
-            if (_rewardedVideoAd == null)
-            {
-                _rewardedVideoAd = WX.CreateRewardedVideoAd(new WXCreateRewardedVideoAdParam()
-                {
-                    adUnitId = AdUnitId
-                });
-
-                _rewardedVideoAd.OnError(err =>
-                {
-                    if (_isDestroyed) return;
-                    State = AdState.Error;
-                    _isShowing = false;
-                    OnError?.Invoke(this, err?.errMsg ?? "激励视频错误");
-                });
-
-                _rewardedVideoAd.OnClose(s =>
-                {
-                    if (_isDestroyed) return;
-                    _isShowing = false;
-                    bool isEnded = s != null && s.isEnded;
-                    WeChatPlatform.CleanupAfterFullscreenAdOverlay();
-                    Debug.Log($"[WeChatRewardedVideoAd] OnClose adUnitId={AdUnitId}, isEnded={isEnded}");
-                    State = AdState.Closed;
-                    OnRewarded?.Invoke(this, isEnded);
-                    OnClosed?.Invoke(this);
-                    _rewardedVideoAd.Load(loadRes =>
-                    {
-                        if (_isDestroyed) return;
-                        State = AdState.Loaded;
-                        OnLoaded?.Invoke(this);
-                    }, loadRes =>
-                    {
-                        if (_isDestroyed) return;
-                        State = AdState.Error;
-                        OnError?.Invoke(this, loadRes?.errMsg ?? "激励视频预加载失败");
-                    });
-                });
-            }
-
-            _rewardedVideoAd.Load(s =>
-            {
-                if (_isDestroyed) return;
-                State = AdState.Loaded;
-                OnLoaded?.Invoke(this);
-            }, s =>
-            {
-                if (_isDestroyed) return;
-                State = AdState.Error;
-                OnError?.Invoke(this, s?.errMsg ?? "激励视频加载失败");
-            });
+            EnsureNativeAdCreated();
+            RequestNativeLoad(isPostClosePreload: false);
         }
 
         public void Show(Action onDisplayed = null)
         {
-            if (_isDestroyed || _rewardedVideoAd == null) return;
+            if (_isDestroyed) return;
+
+            if (_rewardedVideoAd == null)
+            {
+                Debug.LogWarning($"[WeChatRewardedVideoAd] 实例未创建，先加载: adUnitId={AdUnitId}");
+                _pendingDisplayedCallback = onDisplayed;
+                Load();
+                return;
+            }
+
+            if (State == AdState.Loading)
+            {
+                Debug.Log($"[WeChatRewardedVideoAd] 加载中，排队 Show: adUnitId={AdUnitId}");
+                _pendingDisplayedCallback = onDisplayed;
+                return;
+            }
+
             if (_isShowing)
             {
                 Debug.LogWarning($"[WeChatRewardedVideoAd] 广告正在播放中，忽略重复 Show: adUnitId={AdUnitId}");
+                return;
+            }
+
+            if (State != AdState.Loaded)
+            {
+                Debug.LogWarning($"[WeChatRewardedVideoAd] 状态不可展示，重新加载: adUnitId={AdUnitId}, state={State}");
+                _pendingDisplayedCallback = onDisplayed;
+                Load();
                 return;
             }
 
@@ -465,14 +409,29 @@ public class WeChatPlatform : IPlatformSDK
                 _ =>
                 {
                     if (_isDestroyed) return;
+                    _showRetryCount = 0;
+                    _nativeRecreateRetryCount = 0;
                     _isShowing = true;
                     State = AdState.Showing;
+                    Debug.Log($"[WeChatRewardedVideoAd] Show成功: adUnitId={AdUnitId}");
                     onDisplayed?.Invoke();
                 },
                 err =>
                 {
                     if (_isDestroyed) return;
                     _isShowing = false;
+                    WeChatPlatform.CleanupAfterFullscreenAdOverlay();
+
+                    if (_showRetryCount < 1)
+                    {
+                        _showRetryCount++;
+                        Debug.LogWarning($"[WeChatRewardedVideoAd] Show失败，重新加载后重试: adUnitId={AdUnitId}, err={err?.errMsg}");
+                        State = AdState.Loading;
+                        _pendingDisplayedCallback = onDisplayed;
+                        RequestNativeLoad(isPostClosePreload: false);
+                        return;
+                    }
+
                     State = AdState.Error;
                     OnError?.Invoke(this, err?.errMsg ?? "激励视频展示失败");
                 });
@@ -482,13 +441,106 @@ public class WeChatPlatform : IPlatformSDK
 
         public void Dispose()
         {
+            _isDestroyed = true;
+            ResetNativeAd();
+            State = AdState.None;
+        }
+
+        private void EnsureNativeAdCreated()
+        {
+            if (_rewardedVideoAd != null) return;
+
+            _rewardedVideoAd = WX.CreateRewardedVideoAd(new WXCreateRewardedVideoAdParam()
+            {
+                adUnitId = AdUnitId
+            });
+
+            _rewardedVideoAd.OnError(err =>
+            {
+                if (_isDestroyed) return;
+                _isShowing = false;
+                HandleNativeFailure(err?.errMsg ?? "激励视频错误", isPostClosePreload: false);
+            });
+
+            _rewardedVideoAd.OnClose(s =>
+            {
+                if (_isDestroyed) return;
+                _isShowing = false;
+                bool isEnded = s == null || s.isEnded;
+                Debug.Log($"[WeChatRewardedVideoAd] OnClose adUnitId={AdUnitId}, isEnded={isEnded}, closeResultNull={s == null}");
+                State = AdState.Closed;
+                OnRewarded?.Invoke(this, isEnded);
+                OnClosed?.Invoke(this);
+                WeChatPlatform.CleanupAfterFullscreenAdOverlay();
+                State = AdState.Loading;
+                RequestNativeLoad(isPostClosePreload: true);
+            });
+        }
+
+        private void RequestNativeLoad(bool isPostClosePreload)
+        {
+            if (_isDestroyed || _rewardedVideoAd == null) return;
+
+            _rewardedVideoAd.Load(
+                _ =>
+                {
+                    if (_isDestroyed) return;
+                    _nativeRecreateRetryCount = 0;
+                    State = AdState.Loaded;
+                    OnLoaded?.Invoke(this);
+
+                    if (_pendingDisplayedCallback != null)
+                    {
+                        var pending = _pendingDisplayedCallback;
+                        _pendingDisplayedCallback = null;
+                        Show(pending);
+                    }
+                },
+                err =>
+                {
+                    if (_isDestroyed) return;
+                    HandleNativeFailure(err?.errMsg ?? (isPostClosePreload ? "激励视频预加载失败" : "激励视频加载失败"), isPostClosePreload);
+                });
+        }
+
+        private void HandleNativeFailure(string error, bool isPostClosePreload)
+        {
+            if (_isDestroyed) return;
+
+            if (_nativeRecreateRetryCount < 1 && IsDestroyedNativeError(error))
+            {
+                _nativeRecreateRetryCount++;
+                Debug.LogWarning($"[WeChatRewardedVideoAd] native 已销毁，重建后重试: adUnitId={AdUnitId}, err={error}");
+                ResetNativeAd();
+                State = AdState.Loading;
+                EnsureNativeAdCreated();
+                RequestNativeLoad(isPostClosePreload);
+                return;
+            }
+
+            State = AdState.Error;
+            _pendingDisplayedCallback = null;
+            OnError?.Invoke(this, error);
+        }
+
+        private void ResetNativeAd()
+        {
             if (_rewardedVideoAd != null)
             {
                 _rewardedVideoAd.Destroy();
                 _rewardedVideoAd = null;
             }
-            _isDestroyed = true;
-            State = AdState.None;
+
+            _isShowing = false;
+            _showRetryCount = 0;
+            _nativeRecreateRetryCount = 0;
+            _pendingDisplayedCallback = null;
+        }
+
+        private static bool IsDestroyedNativeError(string error)
+        {
+            return !string.IsNullOrEmpty(error)
+                && error.IndexOf("destroyed", StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 

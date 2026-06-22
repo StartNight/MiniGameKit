@@ -229,22 +229,34 @@ namespace MGKit
 
             var finished = false;
             var rewardedCallbackArrived = false;
+            CancellationTokenRegistration cancelRegistration = default;
 
             void Finish(bool rewarded)
             {
                 if (finished) return;
                 finished = true;
+                cancelRegistration.Dispose();
                 rewardedAd.OnRewarded -= OnRewardedHandler;
                 rewardedAd.OnClosed -= OnClosedHandler;
                 rewardedAd.OnLoaded -= OnLoadedHandler;
                 rewardedAd.OnError -= OnErrorHandler;
-                if (cancellationToken.IsCancellationRequested)
+
+                if (cancellationToken.IsCancellationRequested && rewarded)
                 {
-                    Debug.Log($"[AdManager] 激励视频结果已忽略（请求已取消）: adUnitId={adUnitId}, rewarded={rewarded}");
-                    return;
+                    Debug.LogWarning($"[AdManager] 激励视频关闭后仍回调业务: adUnitId={adUnitId}, rewarded={rewarded}");
                 }
 
                 onRewardResult?.Invoke(rewarded);
+            }
+
+            if (cancellationToken.CanBeCanceled)
+            {
+                cancelRegistration = cancellationToken.Register(() =>
+                {
+                    if (!finished)
+                        Debug.LogWarning($"[AdManager] 激励视频请求超时或取消: adUnitId={adUnitId}");
+                    Finish(false);
+                });
             }
 
             void OnRewardedHandler(IRewardedVideoAdUnit unit, bool isEnded)
@@ -281,6 +293,8 @@ namespace MGKit
             rewardedAd.OnRewarded += OnRewardedHandler;
             rewardedAd.OnClosed += OnClosedHandler;
             rewardedAd.OnError += OnErrorHandler;
+
+            Debug.Log($"[AdManager] ShowRewardedVideo: adUnitId={adUnitId}, state={rewardedAd.State}, instanceId={rewardedAd.AdUnitId}");
 
             if (rewardedAd.State == AdState.Loaded)
             {
