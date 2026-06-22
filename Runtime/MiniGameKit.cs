@@ -54,21 +54,10 @@ namespace MGKit
         #region 广告接口 - 委托给 AdManager
 
         /// <summary>
-        /// 当前平台是否支持广告（仅微信/抖音小游戏有实际广告）
-        /// </summary>
-        private static bool IsMiniGamePlatform()
-        {
-            if (!AdManager.Instance.IsInitialized) return false;
-            var p = AdManager.Instance.CurrentPlatform;
-            return p == MiniGamePlatform.WeChatMiniGame || p == MiniGamePlatform.DouyinMiniGame || p == MiniGamePlatform.CrazyGames;
-        }
-
-        /// <summary>
         /// 显示插屏广告
         /// </summary>
         public void ShowInterstitialAd(string adId)
         {
-            if (!IsMiniGamePlatform()) return;
             AdManager.Instance.ShowAd(AdType.Interstitial, adId);
         }
 
@@ -77,11 +66,6 @@ namespace MGKit
         /// </summary>
         public void ShowRewardedVideo(string adId, Action<bool> onRewardResult, Action onAdDisplayed = null, CancellationToken cancellationToken = default)
         {
-            if (!IsMiniGamePlatform())
-            {
-                onRewardResult?.Invoke(true);
-                return;
-            }
             AdManager.Instance.ShowRewardedVideo(adId, onRewardResult, onAdDisplayed, cancellationToken);
         }
 
@@ -90,8 +74,6 @@ namespace MGKit
         /// </summary>
         public void CreateBannerAd(string adId, int left = 0, int top = 1620, int width = 1080, int height = 300)
         {
-            if (!IsMiniGamePlatform()) return;
-
             _bannerAdUnitId = adId;
             if (AdManager.Instance.IsInitialized)
             {
@@ -107,6 +89,10 @@ namespace MGKit
                 bannerUnit.SetPosition(bannerLeft, bannerTop);
                 bannerUnit.SetSize(bannerWidth, bannerHeight);
             }
+            else
+            {
+                Debug.LogWarning($"[MiniGameKit] Banner 广告不可用: adId={adId}, platform={AdManager.Instance.CurrentPlatform}");
+            }
         }
 
         /// <summary>
@@ -114,7 +100,6 @@ namespace MGKit
         /// </summary>
         public void BannerAdShow(string adId = null)
         {
-            if (!IsMiniGamePlatform()) return;
             AdManager.Instance.ShowAd(AdType.Banner, adId ?? _bannerAdUnitId);
         }
 
@@ -123,7 +108,6 @@ namespace MGKit
         /// </summary>
         public void BannerAdHide(string adId = null)
         {
-            if (!IsMiniGamePlatform()) return;
             AdManager.Instance.HideAd(AdType.Banner, adId ?? _bannerAdUnitId);
         }
 
@@ -132,7 +116,6 @@ namespace MGKit
         /// </summary>
         public void ShowCustomAd()
         {
-            if (!IsMiniGamePlatform()) return;
             AdManager.Instance.ShowAd(AdType.Custom);
         }
 

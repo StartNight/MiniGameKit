@@ -156,7 +156,11 @@ namespace MGKit
         {
             if (_isDestroyed) return;
             var ad = LoadAd(type, adUnitId);
-            if (ad == null) return;
+            if (ad == null)
+            {
+                Debug.LogWarning($"[AdManager] 无法展示广告: type={type}, platform={CurrentPlatform}");
+                return;
+            }
 
             if (ad.State == AdState.Loaded)
             {
@@ -218,17 +222,20 @@ namespace MGKit
             var ad = LoadAd(AdType.RewardedVideo, adUnitId);
             if (ad is not IRewardedVideoAdUnit rewardedAd)
             {
+                Debug.LogWarning($"[AdManager] 激励视频不可用: platform={CurrentPlatform}, adUnitId={adUnitId ?? Config.GetAdUnitId(AdType.RewardedVideo, CurrentPlatform)}");
                 onRewardResult?.Invoke(false);
                 return;
             }
 
             var finished = false;
+            var rewardedCallbackArrived = false;
 
             void Finish(bool rewarded)
             {
                 if (finished) return;
                 finished = true;
                 rewardedAd.OnRewarded -= OnRewardedHandler;
+                rewardedAd.OnClosed -= OnClosedHandler;
                 rewardedAd.OnLoaded -= OnLoadedHandler;
                 rewardedAd.OnError -= OnErrorHandler;
                 if (cancellationToken.IsCancellationRequested)
@@ -242,8 +249,16 @@ namespace MGKit
 
             void OnRewardedHandler(IRewardedVideoAdUnit unit, bool isEnded)
             {
+                rewardedCallbackArrived = true;
                 Debug.Log($"[AdManager] 激励视频关闭: adUnitId={adUnitId}, isEnded={isEnded}");
                 Finish(isEnded);
+            }
+
+            void OnClosedHandler(IAdUnit unit)
+            {
+                if (unit != rewardedAd || rewardedCallbackArrived) return;
+                Debug.LogWarning($"[AdManager] 激励视频仅收到关闭事件，按未完整观看处理: adUnitId={adUnitId}");
+                Finish(false);
             }
 
             void OnErrorHandler(IAdUnit unit, string error)
@@ -264,6 +279,7 @@ namespace MGKit
             }
 
             rewardedAd.OnRewarded += OnRewardedHandler;
+            rewardedAd.OnClosed += OnClosedHandler;
             rewardedAd.OnError += OnErrorHandler;
 
             if (rewardedAd.State == AdState.Loaded)

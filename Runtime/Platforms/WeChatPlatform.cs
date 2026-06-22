@@ -141,6 +141,28 @@ public class WeChatPlatform : IPlatformSDK
 #endif
     }
 
+    /// <summary>
+    /// 全屏广告关闭后再次清理焦点与键盘，降低输入层残留引发的 TextView 报错。
+    /// </summary>
+    internal static void CleanupAfterFullscreenAdOverlay()
+    {
+#if !UNITY_EDITOR
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+
+        try
+        {
+            WX.HideKeyboard(new HideKeyboardOption());
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"[WeChatPlatform] HideKeyboard after ad: {ex.Message}");
+        }
+#endif
+    }
+
     #endregion
 
     #region IAdAdapter 实现
@@ -396,6 +418,7 @@ public class WeChatPlatform : IPlatformSDK
                     if (_isDestroyed) return;
                     _isShowing = false;
                     bool isEnded = s != null && s.isEnded;
+                    WeChatPlatform.CleanupAfterFullscreenAdOverlay();
                     Debug.Log($"[WeChatRewardedVideoAd] OnClose adUnitId={AdUnitId}, isEnded={isEnded}");
                     State = AdState.Closed;
                     OnRewarded?.Invoke(this, isEnded);
