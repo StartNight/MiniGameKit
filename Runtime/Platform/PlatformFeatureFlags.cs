@@ -1,68 +1,96 @@
-﻿namespace MGKit
+﻿/****************************************************
+ * FileName:		PlatformFeatureFlags
+ * Description:		各平台大厅 / 设置页能力开关，从项目 PlatformFeatureConfig 读取
+ *
+*****************************************************/
+
+namespace MGKit
 {
     /// <summary>
     /// 各平台大厅 / 设置页能力开关，收敛项目内分散的 #if 分支。
+    /// 配置见 Assets/Resources/MGKit/PlatformFeatureConfig.asset。
     /// </summary>
     public static class PlatformFeatureFlags
     {
-        public static bool ShowLobbyShareButton
+        private static PlatformFeatureConfig _config;
+        private static PlatformFeatureProfile _cachedProfile;
+        private static MiniGamePlatform _cachedPlatform = (MiniGamePlatform)(-1);
+        private static bool _hasCachedProfile;
+
+        private static PlatformFeatureConfig _testConfig;
+        private static MiniGamePlatform? _testPlatform;
+
+        public static void Reload()
+        {
+            _config = null;
+            _hasCachedProfile = false;
+            _cachedPlatform = (MiniGamePlatform)(-1);
+        }
+
+#if UNITY_INCLUDE_TESTS
+        public static void SetTestContext(PlatformFeatureConfig config, MiniGamePlatform platform)
+        {
+            _testConfig = config;
+            _testPlatform = platform;
+            Reload();
+        }
+
+        public static void ClearTestContext()
+        {
+            _testConfig = null;
+            _testPlatform = null;
+            Reload();
+        }
+#endif
+
+        public static bool ShowLobbyShareButton => ActiveProfile.showLobbyShareButton;
+
+        public static bool ShowLobbyFriendPkButton => ActiveProfile.showLobbyFriendPkButton;
+
+        public static bool ShowLobbyWeChatCallbackButton => ActiveProfile.showLobbyWeChatCallbackButton;
+
+        public static bool ShowPrivacyPolicyInSettings => ActiveProfile.showPrivacyPolicyInSettings;
+
+        public static bool ReportGameplayStopOnLobbyReturn => ActiveProfile.reportGameplayStopOnLobbyReturn;
+
+        private static PlatformFeatureProfile ActiveProfile
         {
             get
             {
-#if CRAZYGAMES
-                return false;
-#else
-                return true;
-#endif
+                var platform = ResolvePlatform();
+                if (_hasCachedProfile && _cachedPlatform == platform)
+                    return _cachedProfile;
+
+                var config = _testConfig ?? (_config ??= PlatformFeatureConfig.Load());
+                _cachedPlatform = platform;
+                _cachedProfile = config != null
+                    ? config.GetProfile(platform)
+                    : PlatformFeaturePresets.GetDefault(platform);
+                _hasCachedProfile = true;
+                return _cachedProfile;
             }
         }
 
-        public static bool ShowLobbyFriendPkButton
+        private static MiniGamePlatform ResolvePlatform()
         {
-            get
-            {
-#if CRAZYGAMES
-                return false;
-#else
-                return false;
+#if UNITY_INCLUDE_TESTS
+            if (_testPlatform.HasValue)
+                return _testPlatform.Value;
 #endif
-            }
-        }
 
-        public static bool ShowLobbyWeChatCallbackButton
-        {
-            get
-            {
-#if CRAZYGAMES
-                return false;
-#else
-                return true;
-#endif
-            }
-        }
+            var config = _testConfig ?? (_config ??= PlatformFeatureConfig.Load());
+            if (config != null && config.platformOverride != default)
+                return config.platformOverride;
 
-        public static bool ShowPrivacyPolicyInSettings
-        {
-            get
+            if (AdManager.Instance != null
+                && AdManager.Instance.IsInitialized
+                && AdManager.Instance.Config != null
+                && AdManager.Instance.Config.CurrentPlatform != default)
             {
-#if CRAZYGAMES
-                return true;
-#else
-                return false;
-#endif
+                return AdManager.Instance.Config.CurrentPlatform;
             }
-        }
 
-        public static bool ReportGameplayStopOnLobbyReturn
-        {
-            get
-            {
-#if CRAZYGAMES && !UNITY_EDITOR
-                return true;
-#else
-                return false;
-#endif
-            }
+            return AdPlatformDetector.Detect();
         }
     }
 }

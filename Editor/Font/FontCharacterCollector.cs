@@ -20,24 +20,28 @@ namespace MGKit.Editor
         private const string CommonAscii =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+        /// <summary>字体子集必须包含的字符（空格等），避免被 Unity 导入器 trim 掉。</summary>
+        private const string RequiredCharacters = " ";
+
         [MenuItem(MGKitEditorPaths.FontMenu + "收集全项目字符并写入 TTF", false, 200)]
         public static void CollectProjectCharactersToTtf()
         {
-            var sb = new StringBuilder();
+            var chars = new HashSet<char>();
             foreach (var folder in MGKitEditorPaths.FontScanScriptFolders)
             {
                 var full = MGKitEditorPaths.ToFullPath(folder.Trim());
                 if (Directory.Exists(full))
-                    sb.Append(ScanCSharpScripts(full));
+                    AddCharactersFromText(chars, ScanCSharpScripts(full));
             }
 
-            sb.Append(ScanLocalizationFolder(MGKitEditorPaths.FontScanLocalizationFolder));
-            sb.Append(ScanPrefabsUnder(MGKitEditorPaths.FontScanPrefabRoots));
+            AddCharactersFromText(chars, ScanLocalizationFolder(MGKitEditorPaths.FontScanLocalizationFolder));
+            AddCharactersFromText(chars, ScanPrefabsUnder(MGKitEditorPaths.FontScanPrefabRoots));
+            AddCharactersFromI2LanguageSource(chars);
 
-            var characters = Deduplicate(sb.ToString()) + CommonAscii;
+            var characters = FinalizeCharacterString(chars);
             ApplyToTrueTypeFont(MGKitEditorPaths.FontScanTargetTtf, characters);
             WriteTextFile(MGKitEditorPaths.FontSubsetOutputFolder, "字符.txt", characters);
-            Debug.Log($"[FontCollector] 共 {characters.Length} 个不重复字符。");
+            Debug.Log($"[FontCollector] 共 {characters.Length} 个不重复字符（含空格）。");
         }
 
         [MenuItem(MGKitEditorPaths.FontMenu + "按 TMP 字体导出字符集", false, 201)]
@@ -80,20 +84,14 @@ namespace MGKit.Editor
                 foreach (var c in multiLanguageChars)
                     kvp.Value.Add(c);
 
-                var sorted = kvp.Value.ToList();
-                sorted.Sort();
-                var sb = new StringBuilder();
-                foreach (var c in sorted)
-                    sb.Append(c);
-
-                WriteTextFile(outputFolder, $"{kvp.Key.name}.txt", sb.ToString() + CommonAscii);
+                WriteTextFile(outputFolder, $"{kvp.Key.name}.txt", FinalizeCharacterString(kvp.Value));
             }
 
             AssetDatabase.Refresh();
             var langCount = multiLanguageChars.Count;
             EditorUtility.DisplayDialog(
                 "完成",
-                $"字符集已导出到 {outputFolder}\n（已合并 I2/CSV 多语言字符 {langCount} 个）",
+                $"字符集已导出到 {outputFolder}\n（已合并 I2/CSV 多语言字符 {langCount} 个，含空格）",
                 "确定");
             Debug.Log($"[FontCollector] TMP 分字体导出完成，多语言字符 {langCount} 个。");
         }
@@ -106,20 +104,21 @@ namespace MGKit.Editor
             var chars = new HashSet<char>();
             AddCharactersFromText(chars, ScanLocalizationFolder(MGKitEditorPaths.FontScanLocalizationFolder));
             AddCharactersFromI2LanguageSource(chars);
+            EnsureRequiredCharacters(chars);
             return chars;
         }
 
         public static string Deduplicate(string input)
         {
-            var seen = new HashSet<char>();
-            var sb = new StringBuilder();
-            foreach (var c in input)
-            {
-                if (seen.Add(c))
-                    sb.Append(c);
-            }
+            var chars = new HashSet<char>();
+            AddCharactersFromText(chars, input);
+            return FinalizeCharacterString(chars);
+        }
 
-            return sb.ToString();
+        private static bool ShouldIncludeCharacter(char c)
+        {
+            // 保留空格；其余空白（换行/制表等）不写入字体子集
+            return c == ' ' || !char.IsWhiteSpace(c);
         }
 
         private static void AddCharactersFromText(HashSet<char> chars, string text)
@@ -129,9 +128,43 @@ namespace MGKit.Editor
 
             foreach (var c in text)
             {
-                if (!char.IsWhiteSpace(c))
+                if (ShouldIncludeCharacter(c))
                     chars.Add(c);
             }
+        }
+
+        private static void EnsureRequiredCharacters(ISet<char> chars)
+        {
+            foreach (var c in RequiredCharacters)
+                chars.Add(c);
+        }
+
+        private static void AppendCommonCharacters(ISet<char> chars)
+        {
+            foreach (var c in CommonAscii)
+                chars.Add(c);
+        }
+
+        private static string FinalizeCharacterString(HashSet<char> chars)
+        {
+            AppendCommonCharacters(chars);
+            EnsureRequiredCharacters(chars);
+
+            var sorted = chars.ToList();
+            sorted.Sort();
+
+            var sb = new StringBuilder(sorted.Count);
+            foreach (var c in sorted)
+                sb.Append(c);
+
+            // 空格放在末尾，避免 customCharacters 首尾空白被 Unity 导入器 trim
+            foreach (var c in RequiredCharacters)
+            {
+                if (sb.Length == 0 || sb[sb.Length - 1] != c)
+                    sb.Append(c);
+            }
+
+            return sb.ToString();
         }
 
         private static void AddCharactersFromI2LanguageSource(HashSet<char> chars)
@@ -230,7 +263,7 @@ namespace MGKit.Editor
 
         private static string ScanPrefabsUnder(string assetRoots)
         {
-            var sb = new StringBuilder();
+            var chars = new HashSet<char>();
             var roots = assetRoots.Split(';');
             var guids = AssetDatabase.FindAssets("t:Prefab", roots);
             for (var i = 0; i < guids.Length; i++)
@@ -242,9 +275,9 @@ namespace MGKit.Editor
                     continue;
 
                 foreach (var t in go.GetComponentsInChildren<Text>(true))
-                    sb.Append(t.text);
+                    AddCharactersFromText(chars, t.text);
                 foreach (var t in go.GetComponentsInChildren<TMP_Text>(true))
-                    sb.Append(t.text);
+                    AddCharactersFromText(chars, t.text);
 
                 foreach (var mb in go.GetComponentsInChildren<MonoBehaviour>(true))
                 {
@@ -253,12 +286,16 @@ namespace MGKit.Editor
                     foreach (var field in mb.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
                     {
                         if (field.FieldType == typeof(string))
-                            sb.Append((string)field.GetValue(mb));
+                            AddCharactersFromText(chars, (string)field.GetValue(mb));
                     }
                 }
             }
 
             EditorUtility.ClearProgressBar();
+
+            var sb = new StringBuilder();
+            foreach (var c in chars)
+                sb.Append(c);
             return sb.ToString();
         }
 

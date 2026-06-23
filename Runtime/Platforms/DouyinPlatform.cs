@@ -73,6 +73,24 @@ public class DouyinPlatform : IPlatformSDK
         // 抖音无此明确对应接口
     }
 
+    public void PreloadRecommendPage(Action onComplete = null)
+    {
+        PlatformRecommendSupport.PreloadNoOp(onComplete);
+    }
+
+    public void ShowRecommendPage(Action onSuccess = null, Action<RecommendPageError> onFail = null)
+    {
+        PlatformRecommendSupport.ShowUnsupported(onSuccess, onFail);
+    }
+
+    public void ShowRecommendPageWithReward(
+        Action onRecommended,
+        Action onSuccess = null,
+        Action<RecommendPageError> onFail = null)
+    {
+        PlatformRecommendSupport.ShowWithRewardUnsupported(onRecommended, onSuccess, onFail);
+    }
+
     public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)
     {
         // 抖音无此明确对应接口

@@ -93,6 +93,24 @@ public class MobilePlatform : IPlatformSDK
         Debug.LogWarning("[MobilePlatform] 移动端暂未对接客服接口");
     }
 
+    public void PreloadRecommendPage(Action onComplete = null)
+    {
+        PlatformRecommendSupport.PreloadNoOp(onComplete);
+    }
+
+    public void ShowRecommendPage(Action onSuccess = null, Action<RecommendPageError> onFail = null)
+    {
+        PlatformRecommendSupport.ShowUnsupported(onSuccess, onFail);
+    }
+
+    public void ShowRecommendPageWithReward(
+        Action onRecommended,
+        Action onSuccess = null,
+        Action<RecommendPageError> onFail = null)
+    {
+        PlatformRecommendSupport.ShowWithRewardUnsupported(onRecommended, onSuccess, onFail);
+    }
+
     public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)
     {
         fail?.Invoke("Not supported on Mobile");
