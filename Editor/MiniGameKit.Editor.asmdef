@@ -2,11 +2,14 @@
     "name": "MiniGameKit.Editor",
     "rootNamespace": "MiniGameKit.Editor",
     "references": [
-        "MiniGameKit.Runtime",
+        "GUID:f4a9bbbeb0e2d1242b9d1efd9c53d9f6",
         "GUID:5efd170ecd8084500bed5692932fe14e",
         "GUID:eb6ae48726f0b434e9d6ea7d36a67545",
-        "Unity.TextMeshPro",
-        "Unity.TextMeshPro.Editor"
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:6546d7765b4165b40850b3667f981c26",
+        "GUID:69448af7b92c7f342b298e06a37122aa",
+        "GUID:84651a3751eca9349aac36a66bba901b",
+        "GUID:960c26e8448f65843a3348de3e280d91"
     ],
     "includePlatforms": [
         "Editor"

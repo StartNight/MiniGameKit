@@ -2,9 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using UnityEditor;
+using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
+using UnityEngine.ResourceManagement.Util;
 
 namespace MGKit.Editor
 {
@@ -16,11 +20,21 @@ namespace MGKit.Editor
         public class GroupProviderState
         {
             public string GroupName;
-            public string BundleProviderType;
+            public string AssetBundleProviderType;
             public string BundledAssetProviderType;
         }
 
         public List<GroupProviderState> Groups = new List<GroupProviderState>();
+
+        static readonly PropertyInfo AssetBundleProviderTypeProperty =
+            typeof(BundledAssetGroupSchema).GetProperty(
+                nameof(BundledAssetGroupSchema.AssetBundleProviderType),
+                BindingFlags.Instance | BindingFlags.Public);
+
+        static readonly PropertyInfo BundledAssetProviderTypeProperty =
+            typeof(BundledAssetGroupSchema).GetProperty(
+                nameof(BundledAssetGroupSchema.BundledAssetProviderType),
+                BindingFlags.Instance | BindingFlags.Public);
 
         public static AddressablesProviderSnapshot Capture()
         {
@@ -37,11 +51,14 @@ namespace MGKit.Editor
                 if (schema == null)
                     continue;
 
+                var assetBundleProviderType = (SerializedType)AssetBundleProviderTypeProperty.GetValue(schema);
+                var bundledAssetProviderType = (SerializedType)BundledAssetProviderTypeProperty.GetValue(schema);
+
                 snapshot.Groups.Add(new GroupProviderState
                 {
                     GroupName = group.Name,
-                    BundleProviderType = schema.BundleProviderType?.Value ?? string.Empty,
-                    BundledAssetProviderType = schema.BundledAssetProviderType?.Value ?? string.Empty,
+                    AssetBundleProviderType = assetBundleProviderType.Value?.AssemblyQualifiedName ?? string.Empty,
+                    BundledAssetProviderType = bundledAssetProviderType.Value?.AssemblyQualifiedName ?? string.Empty,
                 });
             }
 
@@ -65,19 +82,10 @@ namespace MGKit.Editor
                     continue;
 
                 var changed = false;
-                if (!string.IsNullOrEmpty(state.BundleProviderType)
-                    && schema.BundleProviderType.Value != state.BundleProviderType)
-                {
-                    schema.BundleProviderType.SetValue(state.BundleProviderType);
+                if (TryRestoreProviderType(schema, AssetBundleProviderTypeProperty, state.AssetBundleProviderType))
                     changed = true;
-                }
-
-                if (!string.IsNullOrEmpty(state.BundledAssetProviderType)
-                    && schema.BundledAssetProviderType.Value != state.BundledAssetProviderType)
-                {
-                    schema.BundledAssetProviderType.SetValue(state.BundledAssetProviderType);
+                if (TryRestoreProviderType(schema, BundledAssetProviderTypeProperty, state.BundledAssetProviderType))
                     changed = true;
-                }
 
                 if (changed)
                 {
@@ -89,9 +97,30 @@ namespace MGKit.Editor
             if (restored > 0)
             {
                 EditorUtility.SetDirty(settings);
-                UnityEditor.AssetDatabase.SaveAssets();
+                AssetDatabase.SaveAssets();
                 Debug.Log($"[Build] 已还原 {restored} 个 Addressables 分组的 Provider。");
             }
+        }
+
+        static bool TryRestoreProviderType(
+            BundledAssetGroupSchema schema,
+            PropertyInfo property,
+            string typeName)
+        {
+            if (property == null || string.IsNullOrEmpty(typeName))
+                return false;
+
+            var targetType = Type.GetType(typeName);
+            if (targetType == null)
+                return false;
+
+            var current = (SerializedType)property.GetValue(schema);
+            if (current.Value?.AssemblyQualifiedName == typeName)
+                return false;
+
+            property.SetValue(schema, new SerializedType { Value = targetType, ValueChanged = true });
+            EditorUtility.SetDirty(schema);
+            return true;
         }
     }
 }
