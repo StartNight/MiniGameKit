@@ -35,5 +35,21 @@ namespace MGKit.Editor
             PlayerPrefs.Save();
             Debug.Log("[PlayerPrefsClear] 已清理配置的本地存档键。");
         }
+
+        [MenuItem(MGKitEditorPaths.UtilityMenu + "清理本地存档 (所有)", false, 100)]
+        public static void ClearSaveALLData()
+        {
+            if (!EditorUtility.DisplayDialog(
+                    "清理存档",
+                    $"将删除所有PlayerPrefs\n\n是否继续？",
+                    "清理",
+                    "取消"))
+                return;
+
+            PlayerPrefs.DeleteAll();
+
+            PlayerPrefs.Save();
+            Debug.Log("[PlayerPrefsClear] 已清理配置的本地存档键。");
+        }
     }
 }
