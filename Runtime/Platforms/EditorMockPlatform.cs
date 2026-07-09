@@ -51,6 +51,25 @@ namespace MGKit
             Debug.Log("[EditorMockPlatform] 模拟打开客服界面");
         }
 
+        public void PreloadRecommendPage(Action onComplete = null)
+        {
+            PlatformRecommendSupport.PreloadNoOp(onComplete);
+        }
+
+        public void ShowRecommendPage(Action onSuccess = null, Action<RecommendPageError> onFail = null)
+        {
+            Debug.Log("[EditorMockPlatform] 模拟打开推荐组件");
+            onSuccess?.Invoke();
+        }
+
+        public void ShowRecommendPageWithReward(
+            Action onRecommended,
+            Action onSuccess = null,
+            Action<RecommendPageError> onFail = null)
+        {
+            PlatformRecommendSupport.ShowWithRewardEditorMock(onRecommended, onSuccess, onFail);
+        }
+
         public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)
         {
             Debug.Log($"[EditorMockPlatform] 模拟打开业务视图: {businessType}");

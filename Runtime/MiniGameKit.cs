@@ -145,6 +145,33 @@ namespace MGKit
         }
 
         /// <summary>
+        /// 预加载推荐组件（微信 createPageManager）。
+        /// </summary>
+        public void PreloadRecommendPage(Action onComplete = null)
+        {
+            _currentPlatform?.PreloadRecommendPage(onComplete);
+        }
+
+        /// <summary>
+        /// 拉起推荐组件。
+        /// </summary>
+        public void ShowRecommendPage(Action onSuccess = null, Action<RecommendPageError> onFail = null)
+        {
+            _currentPlatform?.ShowRecommendPage(onSuccess, onFail);
+        }
+
+        /// <summary>
+        /// 拉起推荐组件；用户完成推荐后执行 onRecommended。
+        /// </summary>
+        public void ShowRecommendPageWithReward(
+            Action onRecommended,
+            Action onSuccess = null,
+            Action<RecommendPageError> onFail = null)
+        {
+            _currentPlatform?.ShowRecommendPageWithReward(onRecommended, onSuccess, onFail);
+        }
+
+        /// <summary>
         /// 打开特定业务场景面板（如客服会话、游戏评星等）
         /// </summary>
         public void OpenBusinessView(string businessType = "servicecommentpage", Action<string> fail = null, Action<string> success = null)

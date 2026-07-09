@@ -18,6 +18,15 @@ namespace MGKit
 
         void OpenCustomerService();
 
+        void PreloadRecommendPage(Action onComplete = null);
+
+        void ShowRecommendPage(Action onSuccess = null, Action<RecommendPageError> onFail = null);
+
+        void ShowRecommendPageWithReward(
+            Action onRecommended,
+            Action onSuccess = null,
+            Action<RecommendPageError> onFail = null);
+
         void OpenBusinessView(string businessType, Action<string> fail, Action<string> success);
 
         void VibrateShort();

@@ -126,7 +126,7 @@ namespace MGKit.Editor
                 {
                     _initialized = true;
                     EditorApplication.update -= TryAttach;
-                    Debug.Log("[ToolbarExtender] 已成功注入 Platform Switcher 到工具栏");
+                    // Debug.Log("[ToolbarExtender] 已成功注入 Platform Switcher 到工具栏");
                 }
             }
             catch (Exception ex)

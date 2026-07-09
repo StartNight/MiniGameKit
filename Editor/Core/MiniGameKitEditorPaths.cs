@@ -139,6 +139,14 @@ namespace MGKit.Editor
             set => EditorPrefs.SetString(Prefix + "AndroidKeyaliasPass", value);
         }
 
+        public const string DefaultPlatformFeatureConfigAssetPath = "Assets/Resources/MGKit/PlatformFeatureConfig.asset";
+
+        public static string PlatformFeatureConfigAssetPath
+        {
+            get => EditorPrefs.GetString(Prefix + "PlatformFeatureConfig", DefaultPlatformFeatureConfigAssetPath);
+            set => EditorPrefs.SetString(Prefix + "PlatformFeatureConfig", value);
+        }
+
         public static string ProjectRoot =>
             Application.dataPath.Replace("/Assets", "").Replace("\\Assets", "");
 

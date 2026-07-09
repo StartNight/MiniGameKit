@@ -18,6 +18,7 @@ public class WeChatPlatform : IPlatformSDK
 
     private Action<WeChatWASM.OnShowListenerResult> _onShowDelegate;
     private Action<WeChatWASM.GeneralCallbackResult> _onHideDelegate;
+    private readonly WeChatRecommendPageService _recommendPage = new WeChatRecommendPageService();
 
     public void Initialize()
     {
@@ -80,6 +81,24 @@ public class WeChatPlatform : IPlatformSDK
             success = (s) => { Debug.Log("[WeChatPlatform] 打开微信客服会话成功"); },
             fail = (res) => { Debug.LogError($"[WeChatPlatform] 打开微信客服会话失败: {res.errMsg}"); }
         });
+    }
+
+    public void PreloadRecommendPage(Action onComplete = null)
+    {
+        _recommendPage.Load(onComplete);
+    }
+
+    public void ShowRecommendPage(Action onSuccess = null, Action<RecommendPageError> onFail = null)
+    {
+        _recommendPage.Show(onSuccess, onFail);
+    }
+
+    public void ShowRecommendPageWithReward(
+        Action onRecommended,
+        Action onSuccess = null,
+        Action<RecommendPageError> onFail = null)
+    {
+        _recommendPage.ShowWithReward(onRecommended, onSuccess, onFail);
     }
 
     public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)

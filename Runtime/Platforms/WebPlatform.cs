@@ -63,6 +63,24 @@ public class WebPlatform : IPlatformSDK
         Debug.LogWarning("[WebPlatform] 平台暂不支持打开客服");
     }
 
+    public void PreloadRecommendPage(Action onComplete = null)
+    {
+        PlatformRecommendSupport.PreloadNoOp(onComplete);
+    }
+
+    public void ShowRecommendPage(Action onSuccess = null, Action<RecommendPageError> onFail = null)
+    {
+        PlatformRecommendSupport.ShowUnsupported(onSuccess, onFail);
+    }
+
+    public void ShowRecommendPageWithReward(
+        Action onRecommended,
+        Action onSuccess = null,
+        Action<RecommendPageError> onFail = null)
+    {
+        PlatformRecommendSupport.ShowWithRewardUnsupported(onRecommended, onSuccess, onFail);
+    }
+
     public void OpenBusinessView(string businessType, Action<string> fail, Action<string> success)
     {
         fail?.Invoke("Not supported on Web");
