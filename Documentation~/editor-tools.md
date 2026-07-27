@@ -64,7 +64,7 @@
 
 ## 构建
 
-详见 [构建管线](build-pipeline.md) 与 [Addressables 微信 Provider](addressables-wechat.md)。
+详见 [构建管线](build-pipeline.md)。Addressables Provider 三态切换见下文。
 
 | 菜单 | 说明 |
 |------|------|
@@ -76,7 +76,64 @@
 | `构建/优化/剥离 TrueShadow...` | UI 性能 |
 | `构建/优化/批量关闭 UI 贴图 MipMaps` | 微信包体 |
 | `构建/光照/将所有烘焙贴图加入 Addressables` | 光照贴图进组 |
-| `构建/Addressables/*` | Provider 切换与构建 |
+| `构建/Addressables/*` | Provider 三态切换与构建（见下节） |
+
+---
+
+## Addressables Provider（微信 / 抖音 / Unity 默认）
+
+菜单根路径：**`Tools/Minigame/构建/Addressables/`**（类 `AddressablesWeChatBuildMenu`）。
+
+对所有含 `BundledAssetGroupSchema` 的分组（含 Localization 只读分组上的 schema）写入 AssetBundle Provider 与 Bundled Asset Provider；当前生效项在菜单上显示勾选。
+
+### 三态切换
+
+| 菜单 | Provider | 前置条件 |
+|------|----------|----------|
+| `切换到微信 Provider` | `WXAssetBundleProvider` + `WXBundledAssetProvider` | 需已切微信平台且 `MGKIT_WECHAT` 可用；否则弹窗拒绝 |
+| `切换到抖音 Provider` | `TTAssetBundleProvider` + `TTBundledAssetProvider` | 需 StarkSDK 就绪且 `DOUYINMINIGAME` 可用；否则弹窗拒绝。同时写入 `Use AssetBundle Cache = false`、`Use AssetBundle CRC = Disabled` |
+| `切换到 Unity 默认 Provider` | `AssetBundleProvider` + `BundledAssetProvider` | 始终可用 |
+
+### 诊断与构建
+
+| 菜单 | 说明 |
+|------|------|
+| `诊断 Provider 状态（输出到 Console）` | 列出各分组当前 Provider 与抖音 Cache/CRC 设置 |
+| `构建内容（不切换 Provider）` | 保持当前 Provider，仅执行 `BuildPlayerContent` |
+| `切换为微信并构建内容` | 切微信 Provider 后构建 |
+| `切换为抖音并构建内容` | 切抖音 Provider 后构建 |
+| `切换为默认并构建内容` | 切 Unity 默认 Provider 后构建 |
+
+### CI 入口（无菜单）
+
+| 方法 | 用途 |
+|------|------|
+| `BatchWeChat` | 切微信 Provider 并构建 |
+| `BatchDouyin` | 切抖音 Provider 并构建 |
+| `BatchDefault` | 切默认 Provider 并构建 |
+| `BatchDiagnoseProviders` | 输出诊断到 Console |
+
+示例：`-executeMethod MGKit.Editor.AddressablesWeChatBuildMenu.BatchDouyin`
+
+### Platform Switcher 联动
+
+Platform Switcher 切入平台成功后，会自动切换 Addressables Provider：
+
+| 切入平台 | Addressables 行为 |
+|----------|-------------------|
+| 微信小游戏 | 自动 `ApplyWeChatProviders()` |
+| 抖音小游戏且 StarkSDK 就绪 | 自动 `ApplyDouyinProviders()` |
+| 其它平台，或抖音但 StarkSDK 未就绪 | 自动 `ApplyDefaultProviders()` |
+
+Provider 切换失败时仅 `LogWarning`，**不回滚**已成功的平台宏 / SDK 切换。
+
+### 抖音官方注意项
+
+使用 TTAssetBundle 时，除切换 Provider 外还需在工程侧完成以下配置（MiniGameKit **不会**自动修改）：
+
+1. **缓存资源域名**：在抖音开放平台 / 小游戏后台配置 Addressables 远程资源的缓存域名。详见官方文档 [使用 TTAssetBundle 优化内存](https://developer.open-douyin.com/docs/resource/zh-CN/mini-game/develop/guide/performance-optimization-both/unity/startup/sc-webgl-tt-ab)。
+2. **`StarkBuilderSettings` → Asset Bundle FS Enabled**：构建抖音小游戏前，请在 StarkSDK 构建设置中手动勾选 **Asset Bundle FS Enabled**。
+3. **`TTUnload`**：TT Bundle 卸载须调用 `TTUnload`（非 Unity 默认 `Unload`）。`TTAssetBundleProvider` 内已在释放路径调用 `TTUnload`，无需业务层额外处理。
 
 ---
 
