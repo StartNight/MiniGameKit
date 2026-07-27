@@ -68,7 +68,7 @@ git clone https://github.com/StartNight/MiniGameKit.git
 
 统一的构建菜单入口，覆盖所有小游戏目标平台：
 
-- **物理级 SDK 热插拔隔离 (Platform Switcher)**: 提供右上角的 Platform Switcher 下拉框。一键切换平台时，自动将其他平台不相关的 SDK 移动到存档目录，彻底解决不同 SDK 间的同级编译冲突，同时自动为您配置 `Build Target` 和 `Scripting Define Symbols`。
+- **物理级 SDK 热插拔隔离 (Platform Switcher)**: 提供右上角的 Platform Switcher 下拉框。微信 / 抖音 BGDT 通过增删 `Packages/manifest.json` 的 UPM 依赖隔离（微信 `com.qq.weixin.minigame`；抖音 `com.bytedance.bgdt`，默认 `https://github.com/StartNight/com.bytedance.bgdt.git#v3.0.271`）。`Assets/Plugins/ByteGame` 下 StarkSDK 等非 UPM 内容仍可移至存档目录；CrazyGames 仍走物理归档。抖音仅在 UPM 不可用且无本地备份时，才弹出导入对话框使用包内 `com.bytedance.bgdt-cp-*.unitypackage`（离线兜底）。同时自动配置 `Build Target` 和 `Scripting Define Symbols`。
 - **智能动态构建菜单**: 构建菜单会根据当前通过 Platform Switcher 激活的平台进行“智能隐身”，只显示当前平台的构建选项，防止跨平台交叉构建导致的严重污染。
 - **微信小游戏**：微信 Provider + WebGL 构建
 - **抖音小游戏**：默认 Provider + WebGL 构建

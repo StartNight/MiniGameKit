@@ -57,7 +57,7 @@
 
 | 菜单 | 类 | 说明 |
 |------|-----|------|
-| `Editor 工具栏右上角 / Platform Switcher` | `PlatformSwitchTool` | 下拉框切换平台，自动隔离其他 SDK 物理文件，并同步更新 Build Target 与宏定义 |
+| `Editor 工具栏右上角 / Platform Switcher` | `PlatformSwitchTool` | 下拉切换平台：微信 / 抖音 BGDT 通过增删 `Packages/manifest.json` 的 UPM 依赖（微信 `com.qq.weixin.minigame`；抖音 `com.bytedance.bgdt`，默认 `https://github.com/StartNight/com.bytedance.bgdt.git#v3.0.271`）。`Assets/Plugins/ByteGame` 下 StarkSDK 等非 UPM 内容仍可物理归档；CrazyGames 仍走 Active↔Archive。抖音仅在 UPM 不可用且无本地备份时，才 interactive 导入 MiniGameKit 内置 `.unitypackage`（离线兜底）。同步 Build Target 与宏。 |
 | `Tools/Minigame/广告/广告管理器调试` | `AdManagerEditorWindow` | Play Mode 下测试 Banner/插屏/激励视频 |
 
 ---
