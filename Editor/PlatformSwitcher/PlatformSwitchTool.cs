@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using MGKit;
 using UnityEditor;
 using UnityEngine;
 
@@ -70,10 +71,8 @@ namespace MGKit.Editor
                     BuildGroup = BuildTargetGroup.WebGL,
                     BuildTarget = BuildTarget.WebGL,
                     Macro = MGKitScriptingDefines.WeChat,
-                    SDKs = new SDKPath[]
-                    {
-                        new SDKPath { Active = "Assets/WX-WASM-SDK-V2", Archive = "SDKs/WeChat/WX-WASM-SDK-V2" }
-                    }
+                    // 微信 SDK 经 UPM（manifest.json）装卸，不再物理移动 Assets/WX-WASM-SDK-V2
+                    SDKs = new SDKPath[0]
                 },
                 new PlatformConfig()
                 {
@@ -81,10 +80,14 @@ namespace MGKit.Editor
                     DisplayName = "抖音小游戏",
                     BuildGroup = BuildTargetGroup.WebGL,
                     BuildTarget = BuildTarget.WebGL,
-                    Macro = "DOUYINMINIGAME",
+                    Macro = MGKitScriptingDefines.Douyin,
                     SDKs = new SDKPath[]
                     {
-                        new SDKPath { Active = "Assets/Plugins/ByteGame", Archive = "SDKs/Douyin/ByteGame" }
+                        new SDKPath
+                        {
+                            Active = DouyinSdkBootstrap.ActiveRelPath,
+                            Archive = DouyinSdkBootstrap.ArchiveRelPath
+                        }
                     }
                 },
                 new PlatformConfig()
@@ -137,10 +140,19 @@ namespace MGKit.Editor
 
             if (EditorGUI.EndChangeCheck())
             {
-                if (EditorUtility.DisplayDialog("切换平台", $"确认切换到 {(_configs[newIndex].DisplayName)} 平台？\n\n此操作将修改 Build Target、宏定义并智能隔离不相关的 SDK 文件。这可能需要几秒钟时间。", "确认", "取消"))
+                if (EditorUtility.DisplayDialog(
+                        "切换平台",
+                        $"确认切换到 {(_configs[newIndex].DisplayName)} 平台？\n\n" +
+                        "将修改 Build Target、宏定义，并隔离不相关的 SDK。\n" +
+                        "微信：增删 Packages/manifest.json 中的 UPM 依赖。\n" +
+                        "抖音：无本地备份时会弹出 SDK 导入对话框。",
+                        "确认",
+                        "取消"))
                 {
+                    int previousIndex = _currentIndex;
                     _currentIndex = newIndex;
-                    SwitchToPlatform(_configs[newIndex]);
+                    if (!SwitchToPlatform(_configs[newIndex]))
+                        _currentIndex = previousIndex;
                 }
             }
         }
@@ -173,8 +185,9 @@ namespace MGKit.Editor
             _currentIndex = 0; // fallback
         }
 
-        private static void SwitchToPlatform(PlatformConfig config)
+        private static bool SwitchToPlatform(PlatformConfig config)
         {
+            bool completed = false;
             try
             {
                 // 关闭潜在的第三方 SDK 面板（如微信小游戏配置面板），防止它们在目录被移走后触发 OnDisable/OnFocus 导致 Crash
@@ -200,32 +213,90 @@ namespace MGKit.Editor
                     }
                 }
 
-                EditorUtility.DisplayProgressBar("Platform Switcher", "正在加载目标平台 SDK...", 0.4f);
+                // 2. UPM：微信 / 抖音 BGDT 与当前平台对齐
+                EditorUtility.DisplayProgressBar("Platform Switcher", "正在同步平台 UPM 依赖...", 0.35f);
+                try
+                {
+                    if (config.Platform == MiniGamePlatform.WeChatMiniGame)
+                    {
+                        bool added = ManifestPackageSwitcher.EnsurePackage(
+                            MGKitEditorPaths.WeChatUpmPackageId,
+                            MGKitEditorPaths.WeChatPackageGitUrl);
+                        Debug.Log(added
+                            ? "[PlatformSwitchTool] 已写入微信 UPM 依赖到 manifest.json"
+                            : "[PlatformSwitchTool] manifest 已含微信 UPM，保留现有 URL");
+                    }
+                    else if (ManifestPackageSwitcher.RemovePackage(MGKitEditorPaths.WeChatUpmPackageId))
+                    {
+                        Debug.Log("[PlatformSwitchTool] 已从 manifest.json 移除微信 UPM");
+                    }
 
-                // 2. 将目标平台的 SDK 从 SDKs 目录恢复到 Assets
+                    if (config.Platform == MiniGamePlatform.DouyinMiniGame)
+                    {
+                        bool added = ManifestPackageSwitcher.EnsurePackage(
+                            MGKitEditorPaths.DouyinUpmPackageId,
+                            MGKitEditorPaths.DouyinPackageGitUrl);
+                        Debug.Log(added
+                            ? "[PlatformSwitchTool] 已写入抖音 BGDT UPM 到 manifest.json"
+                            : "[PlatformSwitchTool] manifest 已含抖音 BGDT UPM，保留现有 URL");
+                    }
+                    else if (ManifestPackageSwitcher.RemovePackage(MGKitEditorPaths.DouyinUpmPackageId))
+                    {
+                        Debug.Log("[PlatformSwitchTool] 已从 manifest.json 移除抖音 BGDT UPM");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EditorUtility.DisplayDialog("切换失败", "同步平台 UPM 失败：\n" + ex.Message, "确定");
+                    Debug.LogError(ex);
+                    return false;
+                }
+
+                EditorUtility.DisplayProgressBar("Platform Switcher", "正在加载目标平台 SDK...", 0.5f);
+
+                // 3. 将目标平台的 SDK 从 SDKs 目录恢复到 Assets
                 foreach (var sdk in config.SDKs)
                 {
                     RestoreFromArchive(sdk.Archive, sdk.Active);
                 }
 
-                EditorUtility.DisplayProgressBar("Platform Switcher", "正在更新宏定义与 Build Target...", 0.6f);
+                // 4. 抖音：无 UPM 且无 Active/Archive 时 interactive 导入内置 unitypackage（离线兜底）
+                if (config.Platform == MiniGamePlatform.DouyinMiniGame)
+                {
+                    bool hasUpm = ManifestPackageSwitcher.HasPackage(MGKitEditorPaths.DouyinUpmPackageId);
+                    if (!hasUpm && !DouyinSdkBootstrap.ExistsActiveOrArchive(PROJ_ROOT))
+                    {
+                        if (!DouyinSdkBootstrap.TryImportSeedPackageInteractive(PROJ_ROOT))
+                        {
+                            EditorUtility.DisplayDialog("切换中止",
+                                "无法写入抖音 BGDT UPM，且离线 unitypackage 不可用。", "确定");
+                            return false;
+                        }
+                        Debug.LogWarning("[PlatformSwitchTool] 已回退为 Interactive ImportPackage（离线兜底）。");
+                    }
+                }
 
-                // 3. 更新 Build Target
+                EditorUtility.DisplayProgressBar("Platform Switcher", "正在更新宏定义与 Build Target...", 0.7f);
+
+                // 5. 更新 Build Target
                 if (EditorUserBuildSettings.activeBuildTarget != config.BuildTarget)
                 {
                     EditorUserBuildSettings.SwitchActiveBuildTarget(config.BuildGroup, config.BuildTarget);
                 }
 
-                // 4. 更新宏定义
+                // 6. 更新宏定义
                 UpdateMacros(config.BuildGroup, config.Macro);
 
                 EditorUtility.DisplayProgressBar("Platform Switcher", "正在刷新 AssetDatabase...", 0.9f);
                 AssetDatabase.Refresh();
+                completed = true;
+                return true;
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
-                Debug.Log($"[PlatformSwitchTool] 已成功切换至 {config.DisplayName}");
+                if (completed)
+                    Debug.Log($"[PlatformSwitchTool] 已成功切换至 {config.DisplayName}");
             }
         }
 

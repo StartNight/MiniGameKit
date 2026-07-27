@@ -5,7 +5,7 @@
  * CreateTime:		2026-07-27
  * Version:			1.0
  * UnityVersion:	2022.3.43f1c1
- * Description:		通过编辑 Packages/manifest.json 装卸微信 UPM 依赖
+ * Description:		装卸平台 UPM 依赖（微信 / 抖音 BGDT 等）
  *
  *****************************************************/
 
@@ -18,7 +18,7 @@ using UnityEngine;
 namespace MGKit.Editor
 {
     /// <summary>
-    /// 通过编辑 Packages/manifest.json 装卸微信小游戏 UPM 依赖。
+    /// 通过编辑 Packages/manifest.json 装卸平台 UPM 依赖（微信 / 抖音 BGDT 等）。
     /// </summary>
     public static class ManifestPackageSwitcher
     {
