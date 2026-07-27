@@ -11,9 +11,17 @@ using UnityEngine.ResourceManagement.Util;
 
 namespace MGKit.Editor
 {
+    public enum AddressablesProviderMode
+    {
+        Default,
+        WeChat,
+        Douyin,
+    }
+
     /// <summary>
     /// Addressables「Content Packing &amp; Loading」：切换 AssetBundle / Bundled Asset Provider。
     /// 微信：<see cref="WXAssetBundleProvider"/> + <see cref="WXBundledAssetProvider"/>；
+    /// 抖音：TTAssetBundleProvider + TTBundledAssetProvider（反射，无硬引用）；
     /// 其它平台：<see cref="AssetBundleProvider"/> + <see cref="BundledAssetProvider"/>。
     /// Localization 分组在 Addressables 里为只读，但仍会切换其 BundledAssetGroupSchema 上的 Provider。
     /// </summary>
@@ -21,12 +29,18 @@ namespace MGKit.Editor
     {
         const string AddrMenu = "Tools/Minigame/构建/Addressables/";
         const string MenuWeChatProviders = AddrMenu + "切换到微信 Provider";
+        const string MenuDouyinProviders = AddrMenu + "切换到抖音 Provider";
         const string MenuDefaultProviders = AddrMenu + "切换到 Unity 默认 Provider";
+
+        const string TTAssetBundleProviderTypeName =
+            "UnityEngine.ResourceManagement.ResourceProviders.TTAssetBundleProvider, MiniGameKit.Runtime.Addressables.Douyin";
+        const string TTBundledAssetProviderTypeName =
+            "UnityEngine.ResourceManagement.ResourceProviders.TTBundledAssetProvider, MiniGameKit.Runtime.Addressables.Douyin";
 
         // ── 仅切换 Provider ──────────────────────────────────────────
 
         [MenuItem(MenuWeChatProviders, false, 10)]
-        public static void ApplyWeChatMiniGameProviders() => ApplyProviders(weChat: true);
+        public static void ApplyWeChatMiniGameProviders() => ApplyProviders(AddressablesProviderMode.WeChat);
 
         [MenuItem(MenuWeChatProviders, true, 10)]
         public static bool ValidateWeChatProviders()
@@ -35,10 +49,20 @@ namespace MGKit.Editor
             return true;
         }
 
-        [MenuItem(MenuDefaultProviders, false, 11)]
-        public static void ApplyDefaultProviders() => ApplyProviders(weChat: false);
+        [MenuItem(MenuDouyinProviders, false, 11)]
+        public static void ApplyDouyinMiniGameProviders() => ApplyProviders(AddressablesProviderMode.Douyin);
 
-        [MenuItem(MenuDefaultProviders, true, 11)]
+        [MenuItem(MenuDouyinProviders, true, 11)]
+        public static bool ValidateDouyinProviders()
+        {
+            RefreshProviderMenuChecks();
+            return true;
+        }
+
+        [MenuItem(MenuDefaultProviders, false, 12)]
+        public static void ApplyDefaultProviders() => ApplyProviders(AddressablesProviderMode.Default);
+
+        [MenuItem(MenuDefaultProviders, true, 12)]
         public static bool ValidateDefaultProviders()
         {
             RefreshProviderMenuChecks();
@@ -51,9 +75,11 @@ namespace MGKit.Editor
         static void RefreshProviderMenuChecks()
         {
             bool weChat = IsUsingWeChatProviders();
+            bool douyin = IsUsingDouyinProviders();
             bool hasBundled = HasAnyBundledGroup();
             Menu.SetChecked(MenuWeChatProviders, weChat);
-            Menu.SetChecked(MenuDefaultProviders, hasBundled && !weChat);
+            Menu.SetChecked(MenuDouyinProviders, douyin);
+            Menu.SetChecked(MenuDefaultProviders, hasBundled && !weChat && !douyin);
         }
 
         // ── 仅构建内容（保持当前 Provider）──────────────────────────
@@ -69,15 +95,23 @@ namespace MGKit.Editor
         [MenuItem(AddrMenu + "切换为微信并构建内容", false, 30)]
         public static void BuildWithWeChatProviders()
         {
-            if (!ApplyProviders(weChat: true))
+            if (!ApplyProviders(AddressablesProviderMode.WeChat))
                 return;
             BuildAddressablesContent();
         }
 
-        [MenuItem(AddrMenu + "切换为默认并构建内容", false, 31)]
+        [MenuItem(AddrMenu + "切换为抖音并构建内容", false, 31)]
+        public static void BuildWithDouyinProviders()
+        {
+            if (!ApplyProviders(AddressablesProviderMode.Douyin))
+                return;
+            BuildAddressablesContent();
+        }
+
+        [MenuItem(AddrMenu + "切换为默认并构建内容", false, 32)]
         public static void BuildWithDefaultProviders()
         {
-            if (!ApplyProviders(weChat: false))
+            if (!ApplyProviders(AddressablesProviderMode.Default))
                 return;
             BuildAddressablesContent();
         }
@@ -87,7 +121,18 @@ namespace MGKit.Editor
         /// <summary>供 CI：<c>-executeMethod MGKit.Editor.AddressablesWeChatBuildMenu.BatchWeChat</c></summary>
         public static void BatchWeChat()
         {
-            if (!ApplyProviders(weChat: true))
+            if (!ApplyProviders(AddressablesProviderMode.WeChat))
+                EditorApplication.Exit(200);
+            else if (!BuildAddressablesContent())
+                EditorApplication.Exit(201);
+            else
+                EditorApplication.Exit(0);
+        }
+
+        /// <summary>供 CI：<c>-executeMethod MGKit.Editor.AddressablesWeChatBuildMenu.BatchDouyin</c></summary>
+        public static void BatchDouyin()
+        {
+            if (!ApplyProviders(AddressablesProviderMode.Douyin))
                 EditorApplication.Exit(200);
             else if (!BuildAddressablesContent())
                 EditorApplication.Exit(201);
@@ -98,7 +143,7 @@ namespace MGKit.Editor
         /// <summary>供 CI：<c>-executeMethod MGKit.Editor.AddressablesWeChatBuildMenu.BatchDefault</c></summary>
         public static void BatchDefault()
         {
-            if (!ApplyProviders(weChat: false))
+            if (!ApplyProviders(AddressablesProviderMode.Default))
                 EditorApplication.Exit(200);
             else if (!BuildAddressablesContent())
                 EditorApplication.Exit(201);
@@ -117,16 +162,19 @@ namespace MGKit.Editor
         public static void BatchTestProviderSwitch()
         {
             Debug.Log("[Addressables] === Provider 切换测试开始 ===");
-            ApplyProviders(weChat: true);
+            ApplyProviders(AddressablesProviderMode.WeChat);
             LogProviderDiagnostics();
-            ApplyProviders(weChat: false);
+            ApplyProviders(AddressablesProviderMode.Default);
             LogProviderDiagnostics();
             Debug.Log("[Addressables] === Provider 切换测试结束 ===");
             EditorApplication.Exit(0);
         }
 
-        /// <returns>是否成功（找不到 Settings 时返回 false）。</returns>
-        public static bool ApplyProviders(bool weChat)
+        public static bool ApplyProviders(bool weChat) =>
+            ApplyProviders(weChat ? AddressablesProviderMode.WeChat : AddressablesProviderMode.Default);
+
+        /// <returns>是否成功（找不到 Settings 或 Provider 类型不可用时返回 false）。</returns>
+        public static bool ApplyProviders(AddressablesProviderMode mode)
         {
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null)
@@ -135,21 +183,8 @@ namespace MGKit.Editor
                 return false;
             }
 
-            Type bundleProvider;
-            Type bundledAssetProvider;
-#if MGKIT_WECHAT
-            bundleProvider = weChat ? typeof(WXAssetBundleProvider) : typeof(AssetBundleProvider);
-            bundledAssetProvider = weChat ? typeof(WXBundledAssetProvider) : typeof(BundledAssetProvider);
-#else
-            if (weChat)
-            {
-                Debug.LogError("[Addressables] 当前未启用 MGKIT_WECHAT（微信 UPM 未安装），无法切换到微信 Provider。");
+            if (!TryResolveProviderTypes(mode, out var bundleProvider, out var bundledAssetProvider, out var modeLabel))
                 return false;
-            }
-
-            bundleProvider = typeof(AssetBundleProvider);
-            bundledAssetProvider = typeof(BundledAssetProvider);
-#endif
 
             int changed = 0;
             int already = 0;
@@ -167,17 +202,21 @@ namespace MGKit.Editor
                     continue;
                 }
 
-                if (TrySetBundledSchemaProviders(schema, bundleProvider, bundledAssetProvider))
+                bool providerChanged = TrySetBundledSchemaProviders(schema, bundleProvider, bundledAssetProvider);
+                bool douyinSettingsChanged = mode == AddressablesProviderMode.Douyin
+                    && TryApplyDouyinSchemaSettings(schema);
+
+                if (providerChanged || douyinSettingsChanged)
                 {
                     changed++;
                     log.AppendLine(FormatGroupLogLine(group));
                     EditorUtility.SetDirty(group);
                 }
-                else if (SchemaUsesProviders(schema, bundleProvider, bundledAssetProvider))
+                else if (SchemaUsesProviders(schema, bundleProvider, bundledAssetProvider)
+                         && (mode != AddressablesProviderMode.Douyin || SchemaMatchesDouyinSettings(schema)))
                     already++;
             }
 
-            string modeLabel = weChat ? "微信小游戏" : "Unity 默认";
             if (changed > 0)
             {
                 EditorUtility.SetDirty(settings);
@@ -194,6 +233,94 @@ namespace MGKit.Editor
             RefreshProviderMenuChecks();
             return true;
         }
+
+        static bool TryResolveProviderTypes(
+            AddressablesProviderMode mode,
+            out Type bundleProvider,
+            out Type bundledAssetProvider,
+            out string modeLabel)
+        {
+            bundleProvider = null;
+            bundledAssetProvider = null;
+            modeLabel = null;
+
+            switch (mode)
+            {
+                case AddressablesProviderMode.WeChat:
+#if MGKIT_WECHAT
+                    bundleProvider = typeof(WXAssetBundleProvider);
+                    bundledAssetProvider = typeof(WXBundledAssetProvider);
+                    modeLabel = "微信小游戏";
+                    return true;
+#else
+                    ReportProviderUnavailable(
+                        "微信",
+                        "当前未启用 MGKIT_WECHAT（微信 UPM 未安装），请先切换到微信平台并安装微信小游戏 SDK。");
+                    return false;
+#endif
+
+                case AddressablesProviderMode.Douyin:
+                    bundleProvider = Type.GetType(TTAssetBundleProviderTypeName);
+                    bundledAssetProvider = Type.GetType(TTBundledAssetProviderTypeName);
+                    if (bundleProvider == null || bundledAssetProvider == null)
+                    {
+                        ReportProviderUnavailable(
+                            "抖音",
+                            "未找到 TTAssetBundleProvider / TTBundledAssetProvider。" +
+                            "请先切换到抖音平台并安装 StarkSDK（需 DOUYINMINIGAME 宏）。");
+                        return false;
+                    }
+
+                    modeLabel = "抖音小游戏";
+                    return true;
+
+                default:
+                    bundleProvider = typeof(AssetBundleProvider);
+                    bundledAssetProvider = typeof(BundledAssetProvider);
+                    modeLabel = "Unity 默认";
+                    return true;
+            }
+        }
+
+        static void ReportProviderUnavailable(string platformLabel, string message)
+        {
+            string fullMessage = $"[Addressables] 无法切换到{platformLabel} Provider：{message}";
+            if (Application.isBatchMode)
+                Debug.LogError(fullMessage);
+            else
+                EditorUtility.DisplayDialog("Addressables Provider", fullMessage, "确定");
+        }
+
+        static bool TryApplyDouyinSchemaSettings(BundledAssetGroupSchema schema)
+        {
+            bool changed = false;
+            try
+            {
+                if (schema.UseAssetBundleCache)
+                {
+                    schema.UseAssetBundleCache = false;
+                    changed = true;
+                }
+
+                if (schema.UseAssetBundleCrc)
+                {
+                    schema.UseAssetBundleCrc = false;
+                    changed = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[Addressables] 无法设置抖音 Cache/CRC（UseAssetBundleCache / UseAssetBundleCrc）：{ex.Message}");
+            }
+
+            if (changed)
+                EditorUtility.SetDirty(schema);
+
+            return changed;
+        }
+
+        static bool SchemaMatchesDouyinSettings(BundledAssetGroupSchema schema) =>
+            !schema.UseAssetBundleCache && !schema.UseAssetBundleCrc;
 
         /// <returns>构建是否成功。</returns>
         public static bool BuildAddressablesContent()
@@ -226,6 +353,41 @@ namespace MGKit.Editor
 #endif
         }
 
+        public static bool IsUsingDouyinProviders()
+        {
+            var bundleProvider = Type.GetType(TTAssetBundleProviderTypeName);
+            var bundledAssetProvider = Type.GetType(TTBundledAssetProviderTypeName);
+            if (bundleProvider == null || bundledAssetProvider == null)
+                return false;
+
+            return AllBundledGroupsUseDouyin(bundleProvider, bundledAssetProvider);
+        }
+
+        static bool AllBundledGroupsUseDouyin(Type bundleProvider, Type bundledAssetProvider)
+        {
+            var settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null)
+                return false;
+
+            bool any = false;
+            foreach (var group in settings.groups)
+            {
+                if (group == null)
+                    continue;
+
+                var schema = group.GetSchema<BundledAssetGroupSchema>();
+                if (schema == null)
+                    continue;
+
+                any = true;
+                if (!SchemaUsesProviders(schema, bundleProvider, bundledAssetProvider)
+                    || !SchemaMatchesDouyinSettings(schema))
+                    return false;
+            }
+
+            return any;
+        }
+
         /// <summary>将所有 Bundled 分组的 Provider 类型输出到 Console（含只读分组）。</summary>
         public static void LogProviderDiagnostics()
         {
@@ -238,7 +400,8 @@ namespace MGKit.Editor
 
             var report = new StringBuilder();
             report.AppendLine("[Addressables][诊断] 当前各分组 Provider：");
-            report.AppendLine($"  汇总：微信模式={IsUsingWeChatProviders()}，Bundled 分组数={CountBundledGroups()}");
+            report.AppendLine(
+                $"  汇总：微信模式={IsUsingWeChatProviders()}，抖音模式={IsUsingDouyinProviders()}，Bundled 分组数={CountBundledGroups()}");
 
             foreach (var group in settings.groups)
             {
@@ -255,6 +418,8 @@ namespace MGKit.Editor
                 report.AppendLine($"  [{flags}] {group.Name}");
                 report.AppendLine($"         Bundle: {bundle}");
                 report.AppendLine($"         Bundled: {bundled}");
+                report.AppendLine(
+                    $"         Cache={schema.UseAssetBundleCache}, CRC={schema.UseAssetBundleCrc}");
             }
 
             Debug.Log(report.ToString());
