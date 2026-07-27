@@ -12,7 +12,8 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [
-        "UNITY_ADDRESSABLES"
+        "UNITY_ADDRESSABLES",
+        "MGKIT_WECHAT"
     ],
     "versionDefines": [
         {

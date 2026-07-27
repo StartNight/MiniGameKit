@@ -135,8 +135,21 @@ namespace MGKit.Editor
                 return false;
             }
 
-            Type bundleProvider = weChat ? typeof(WXAssetBundleProvider) : typeof(AssetBundleProvider);
-            Type bundledAssetProvider = weChat ? typeof(WXBundledAssetProvider) : typeof(BundledAssetProvider);
+            Type bundleProvider;
+            Type bundledAssetProvider;
+#if MGKIT_WECHAT
+            bundleProvider = weChat ? typeof(WXAssetBundleProvider) : typeof(AssetBundleProvider);
+            bundledAssetProvider = weChat ? typeof(WXBundledAssetProvider) : typeof(BundledAssetProvider);
+#else
+            if (weChat)
+            {
+                Debug.LogError("[Addressables] 当前未启用 MGKIT_WECHAT（微信 UPM 未安装），无法切换到微信 Provider。");
+                return false;
+            }
+
+            bundleProvider = typeof(AssetBundleProvider);
+            bundledAssetProvider = typeof(BundledAssetProvider);
+#endif
 
             int changed = 0;
             int already = 0;
@@ -204,8 +217,14 @@ namespace MGKit.Editor
             return EditorUserBuildSettings.activeBuildTarget == wxTarget;
         }
 
-        public static bool IsUsingWeChatProviders() =>
-            AllBundledGroupsUse(typeof(WXAssetBundleProvider), typeof(WXBundledAssetProvider));
+        public static bool IsUsingWeChatProviders()
+        {
+#if MGKIT_WECHAT
+            return AllBundledGroupsUse(typeof(WXAssetBundleProvider), typeof(WXBundledAssetProvider));
+#else
+            return false;
+#endif
+        }
 
         /// <summary>将所有 Bundled 分组的 Provider 类型输出到 Console（含只读分组）。</summary>
         public static void LogProviderDiagnostics()

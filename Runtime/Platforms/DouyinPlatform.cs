@@ -17,8 +17,8 @@ public class DouyinPlatform : IPlatformSDK
     public event Action OnShow;
     public event Action OnHide;
 
-    private Action<TTSDK.OnShowResult> _onShowDelegate;
-    private Action<TTSDK.OnHideResult> _onHideDelegate;
+    private TTSDK.TTAppLifeCycle.OnShowEventWithDict _onShowDelegate;
+    private TTSDK.TTAppLifeCycle.OnAppHideEvent _onHideDelegate;
 
     public void Initialize()
     {
@@ -29,10 +29,10 @@ public class DouyinPlatform : IPlatformSDK
 #if !UNITY_EDITOR
         TT.ShowShareMenu();
 #endif
-        _onShowDelegate = (res) => { OnShow?.Invoke(); };
-        _onHideDelegate = (res) => { OnHide?.Invoke(); };
-        TT.OnShow(_onShowDelegate);
-        TT.OnHide(_onHideDelegate);
+        _onShowDelegate = (_) => { OnShow?.Invoke(); };
+        _onHideDelegate = () => { OnHide?.Invoke(); };
+        TT.GetAppLifeCycle().OnShow += _onShowDelegate;
+        TT.GetAppLifeCycle().OnHide += _onHideDelegate;
     }
 
     public void Destroy()
@@ -42,8 +42,13 @@ public class DouyinPlatform : IPlatformSDK
 
     public void Dispose()
     {
+        if (_onShowDelegate != null)
+            TT.GetAppLifeCycle().OnShow -= _onShowDelegate;
+        if (_onHideDelegate != null)
+            TT.GetAppLifeCycle().OnHide -= _onHideDelegate;
+        _onShowDelegate = null;
+        _onHideDelegate = null;
         IsInitialized = false;
-        // Douyin SDK might not have OffShow/OffHide exposed
     }
 
     #region IMiniGamePlatform 实现
@@ -99,15 +104,12 @@ public class DouyinPlatform : IPlatformSDK
 
     public void VibrateShort()
     {
-        TT.VibrateShort(new TTSDK.VibrateShortOption()
-        {
-            type = "heavy"
-        });
+        TT.VibrateShort(new TTSDK.VibrateShortParam());
     }
 
     public void VibrateLong()
     {
-        TT.VibrateLong(new TTSDK.VibrateLongOption());
+        TT.VibrateLong(new TTSDK.VibrateLongParam());
     }
 
     public void ReportGameStart()
@@ -168,7 +170,7 @@ public class DouyinPlatform : IPlatformSDK
             if (_isDestroyed) return;
             State = AdState.Loading;
 
-            var param = new CreateBannerAdParam { AdUnitId = AdUnitId };
+            var param = new CreateBannerAdParam { BannerAdId = AdUnitId };
             _bannerAd = TT.CreateBannerAd(param);
 
             _bannerAd.OnLoad += () =>
@@ -241,7 +243,7 @@ public class DouyinPlatform : IPlatformSDK
             if (_isDestroyed) return;
             State = AdState.Loading;
 
-            var param = new CreateInterstitialAdParam { AdUnitId = AdUnitId };
+            var param = new CreateInterstitialAdParam { InterstitialAdId = AdUnitId };
             _interstitialAd = TT.CreateInterstitialAd(param);
 
             _interstitialAd.OnLoad += () =>
@@ -391,5 +393,6 @@ public class DouyinPlatform : IPlatformSDK
     }
 
     #endregion
+}
 }
 #endif

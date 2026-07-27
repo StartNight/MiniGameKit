@@ -155,7 +155,7 @@ namespace MGKit.Editor
         public const string DouyinUpmPackageId = "com.bytedance.bgdt";
 
         public const string DefaultDouyinPackageGitUrl =
-            "https://github.com/StartNight/com.bytedance.bgdt.git#v3.0.271";
+            "https://github.com/StartNight/com.bytedance.bgdt.git#v3.0.271.1";
 
         public const string DefaultDouyinSeedUnityPackageRelPath =
             "Packages/MiniGameKit/com.bytedance.bgdt-cp-3.0.271.unitypackage";

@@ -49,6 +49,31 @@ namespace MGKit.Editor
         {
             InitConfigs();
             ToolbarExtender.RightToolbarGUI.Add(OnToolbarGUI);
+            EditorApplication.delayCall += EnsureDouyinMacroConsistentWithSdk;
+        }
+
+        /// <summary>
+        /// 若已启用 DOUYINMINIGAME 但 StarkSDK 被删：先尝试自动恢复，失败则清宏，避免 Runtime CS0246。
+        /// </summary>
+        static void EnsureDouyinMacroConsistentWithSdk()
+        {
+            var group = EditorUserBuildSettings.selectedBuildTargetGroup;
+            string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(group);
+            if (!defines.Contains(MGKitScriptingDefines.Douyin))
+                return;
+
+            if (DouyinSdkBootstrap.IsStarkSdkReady(PROJ_ROOT))
+                return;
+
+            if (DouyinSdkBootstrap.TryEnsureStarkSdk(PROJ_ROOT, out string source))
+            {
+                Debug.Log($"[PlatformSwitchTool] 自动恢复 StarkSDK 成功（{source}），保留 DOUYINMINIGAME。");
+                return;
+            }
+
+            Debug.LogWarning(
+                "[PlatformSwitchTool] 检测到 DOUYINMINIGAME 但 StarkSDK 缺失，已清除该宏以避免编译错误。请重新切换到「抖音小游戏」。");
+            UpdateMacros(group, "");
         }
 
         private static void InitConfigs()
@@ -145,7 +170,7 @@ namespace MGKit.Editor
                         $"确认切换到 {(_configs[newIndex].DisplayName)} 平台？\n\n" +
                         "将修改 Build Target、宏定义，并隔离不相关的 SDK。\n" +
                         "微信 / 抖音 BGDT：增删 Packages/manifest.json 中的 UPM 依赖。\n" +
-                        "抖音：无 UPM 且无本地备份时才会弹出离线 ImportPackage 对话框。",
+                        "抖音：自动恢复 StarkSDK；若无缓存则引导打开 BGDT 安装。",
                         "确认",
                         "取消"))
                 {
@@ -233,6 +258,7 @@ namespace MGKit.Editor
 
                     if (config.Platform == MiniGamePlatform.DouyinMiniGame)
                     {
+                        DouyinSdkBootstrap.EnsureActiveDirectory(PROJ_ROOT);
                         bool added = ManifestPackageSwitcher.EnsurePackage(
                             MGKitEditorPaths.DouyinUpmPackageId,
                             MGKitEditorPaths.DouyinPackageGitUrl);
@@ -260,7 +286,7 @@ namespace MGKit.Editor
                     RestoreFromArchive(sdk.Archive, sdk.Active);
                 }
 
-                // 4. 抖音：无 UPM 且无 Active/Archive 时 interactive 导入内置 unitypackage（离线兜底）
+                // 4. 抖音：自动确保 StarkSDK；就绪前不写 DOUYINMINIGAME，避免 CS0246
                 if (config.Platform == MiniGamePlatform.DouyinMiniGame)
                 {
                     bool hasUpm = ManifestPackageSwitcher.HasPackage(MGKitEditorPaths.DouyinUpmPackageId);
@@ -274,6 +300,22 @@ namespace MGKit.Editor
                         }
                         Debug.LogWarning("[PlatformSwitchTool] 已回退为 Interactive ImportPackage（离线兜底）。");
                     }
+
+                    EditorUtility.DisplayProgressBar("Platform Switcher", "正在自动安装/恢复 StarkSDK...", 0.55f);
+                    if (!DouyinSdkBootstrap.TryEnsureStarkSdk(PROJ_ROOT, out string starkSource))
+                    {
+                        // 切 WebGL 但清除抖音宏，保持可编译；引导手动装 StarkSDK
+                        if (EditorUserBuildSettings.activeBuildTarget != config.BuildTarget)
+                            EditorUserBuildSettings.SwitchActiveBuildTarget(config.BuildGroup, config.BuildTarget);
+                        UpdateMacros(config.BuildGroup, "");
+                        AssetDatabase.Refresh();
+                        DouyinSdkBootstrap.PromptManualInstallAndOpenBgdt();
+                        Debug.LogWarning(
+                            "[PlatformSwitchTool] 抖音环境已准备（BGDT），但 StarkSDK 未就绪；未启用 DOUYINMINIGAME。安装后再切一次即可。");
+                        return false;
+                    }
+
+                    Debug.Log($"[PlatformSwitchTool] StarkSDK 已就绪（来源: {starkSource}）");
                 }
 
                 EditorUtility.DisplayProgressBar("Platform Switcher", "正在更新宏定义与 Build Target...", 0.7f);
