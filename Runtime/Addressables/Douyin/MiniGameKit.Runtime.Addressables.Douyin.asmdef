@@ -1,0 +1,28 @@
+{
+  "name": "MiniGameKit.Runtime.Addressables.Douyin",
+  "rootNamespace": "",
+  "references": [
+    "Unity.ResourceManager",
+    "GUID:986ad24dedab349ad9a8cb6ed29f9532",
+    "GUID:55e48f4b8bd37c54b9d0277534e582f1",
+    "GUID:bb21d6197862c4c3e863390dec9859a7"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [
+    "UNITY_ADDRESSABLES",
+    "DOUYINMINIGAME"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.unity.addressables",
+      "expression": "1.0.0",
+      "define": "UNITY_ADDRESSABLES"
+    }
+  ],
+  "noEngineReferences": false
+}
