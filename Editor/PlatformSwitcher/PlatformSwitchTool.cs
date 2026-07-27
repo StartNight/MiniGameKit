@@ -144,8 +144,8 @@ namespace MGKit.Editor
                         "切换平台",
                         $"确认切换到 {(_configs[newIndex].DisplayName)} 平台？\n\n" +
                         "将修改 Build Target、宏定义，并隔离不相关的 SDK。\n" +
-                        "微信：增删 Packages/manifest.json 中的 UPM 依赖。\n" +
-                        "抖音：无本地备份时会弹出 SDK 导入对话框。",
+                        "微信 / 抖音 BGDT：增删 Packages/manifest.json 中的 UPM 依赖。\n" +
+                        "抖音：无 UPM 且无本地备份时才会弹出离线 ImportPackage 对话框。",
                         "确认",
                         "取消"))
                 {
