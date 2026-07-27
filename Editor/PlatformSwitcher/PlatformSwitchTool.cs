@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using MGKit;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace MGKit.Editor
@@ -44,6 +45,15 @@ namespace MGKit.Editor
         private static List<PlatformConfig> _configs;
         private static string[] _options;
         private static int _currentIndex = -1;
+
+        private static AddressablesProviderMode? _pendingProviderMode;
+        private static bool _compilationFinishedSubscribed;
+        private static bool _delayCallScheduled;
+
+        const string TTAssetBundleProviderTypeName =
+            "UnityEngine.ResourceManagement.ResourceProviders.TTAssetBundleProvider, MiniGameKit.Runtime.Addressables.Douyin";
+        const string TTBundledAssetProviderTypeName =
+            "UnityEngine.ResourceManagement.ResourceProviders.TTBundledAssetProvider, MiniGameKit.Runtime.Addressables.Douyin";
 
         static PlatformSwitchTool()
         {
@@ -309,16 +319,7 @@ namespace MGKit.Editor
                             EditorUserBuildSettings.SwitchActiveBuildTarget(config.BuildGroup, config.BuildTarget);
                         UpdateMacros(config.BuildGroup, "");
                         AssetDatabase.Refresh();
-                        try
-                        {
-                            AddressablesWeChatBuildMenu.ApplyProviders(AddressablesProviderMode.Default);
-                        }
-                        catch (Exception providerEx)
-                        {
-                            Debug.LogWarning(
-                                "[PlatformSwitchTool] Addressables Provider 自动切换失败（不影响平台切换）: " +
-                                providerEx.Message);
-                        }
+                        ScheduleApplyAddressablesProviders(AddressablesProviderMode.Default);
 
                         DouyinSdkBootstrap.PromptManualInstallAndOpenBgdt();
                         Debug.LogWarning(
@@ -343,21 +344,7 @@ namespace MGKit.Editor
                 EditorUtility.DisplayProgressBar("Platform Switcher", "正在刷新 AssetDatabase...", 0.9f);
                 AssetDatabase.Refresh();
 
-                try
-                {
-                    if (config.Platform == MiniGamePlatform.WeChatMiniGame)
-                        AddressablesWeChatBuildMenu.ApplyProviders(AddressablesProviderMode.WeChat);
-                    else if (config.Platform == MiniGamePlatform.DouyinMiniGame
-                             && DouyinSdkBootstrap.IsStarkSdkReady(PROJ_ROOT))
-                        AddressablesWeChatBuildMenu.ApplyProviders(AddressablesProviderMode.Douyin);
-                    else
-                        AddressablesWeChatBuildMenu.ApplyProviders(AddressablesProviderMode.Default);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning(
-                        "[PlatformSwitchTool] Addressables Provider 自动切换失败（不影响平台切换）: " + ex.Message);
-                }
+                ScheduleApplyAddressablesProviders(ResolveProviderMode(config));
 
                 completed = true;
                 return true;
@@ -589,6 +576,132 @@ namespace MGKit.Editor
                 }
             }
             return false;
+        }
+
+        static AddressablesProviderMode ResolveProviderMode(PlatformConfig config)
+        {
+            if (config.Platform == MiniGamePlatform.WeChatMiniGame)
+                return AddressablesProviderMode.WeChat;
+            if (config.Platform == MiniGamePlatform.DouyinMiniGame
+                && DouyinSdkBootstrap.IsStarkSdkReady(PROJ_ROOT))
+                return AddressablesProviderMode.Douyin;
+            return AddressablesProviderMode.Default;
+        }
+
+        static void ScheduleApplyAddressablesProviders(AddressablesProviderMode mode)
+        {
+            _pendingProviderMode = mode;
+
+            if (EditorApplication.isCompiling)
+            {
+                EnsureCompilationFinishedSubscription();
+                return;
+            }
+
+            EnsureDelayCallScheduled();
+        }
+
+        static void EnsureCompilationFinishedSubscription()
+        {
+            if (_compilationFinishedSubscribed)
+                return;
+            _compilationFinishedSubscribed = true;
+            CompilationPipeline.compilationFinished += OnCompilationFinishedApplyProviders;
+        }
+
+        static void EnsureDelayCallScheduled()
+        {
+            if (_delayCallScheduled)
+                return;
+            _delayCallScheduled = true;
+            EditorApplication.delayCall += OnDelayedApplyAddressablesProviders;
+        }
+
+        static void CancelProviderApplySubscriptions()
+        {
+            if (_compilationFinishedSubscribed)
+            {
+                CompilationPipeline.compilationFinished -= OnCompilationFinishedApplyProviders;
+                _compilationFinishedSubscribed = false;
+            }
+
+            if (_delayCallScheduled)
+            {
+                EditorApplication.delayCall -= OnDelayedApplyAddressablesProviders;
+                _delayCallScheduled = false;
+            }
+        }
+
+        static void OnCompilationFinishedApplyProviders(object _)
+        {
+            if (_compilationFinishedSubscribed)
+            {
+                CompilationPipeline.compilationFinished -= OnCompilationFinishedApplyProviders;
+                _compilationFinishedSubscribed = false;
+            }
+
+            if (!_pendingProviderMode.HasValue)
+                return;
+
+            if (EditorApplication.isCompiling)
+            {
+                EnsureCompilationFinishedSubscription();
+                return;
+            }
+
+            EnsureDelayCallScheduled();
+        }
+
+        static void OnDelayedApplyAddressablesProviders()
+        {
+            _delayCallScheduled = false;
+            EditorApplication.delayCall -= OnDelayedApplyAddressablesProviders;
+
+            if (!_pendingProviderMode.HasValue)
+                return;
+
+            if (EditorApplication.isCompiling)
+            {
+                EnsureCompilationFinishedSubscription();
+                return;
+            }
+
+            CancelProviderApplySubscriptions();
+
+            var mode = _pendingProviderMode.Value;
+            _pendingProviderMode = null;
+
+            if (mode == AddressablesProviderMode.Douyin && !AreDouyinProviderTypesReady())
+            {
+                Debug.LogWarning(
+                    "[PlatformSwitchTool] Addressables Provider 自动切换失败（抖音 TT 类型编译后仍不可用，mode=Douyin）。");
+                return;
+            }
+
+            SafeApplyAddressablesProviders(mode);
+        }
+
+        static bool AreDouyinProviderTypesReady()
+        {
+            return Type.GetType(TTAssetBundleProviderTypeName) != null
+                && Type.GetType(TTBundledAssetProviderTypeName) != null;
+        }
+
+        static void SafeApplyAddressablesProviders(AddressablesProviderMode mode)
+        {
+            try
+            {
+                if (!AddressablesWeChatBuildMenu.ApplyProviders(mode))
+                {
+                    Debug.LogWarning(
+                        $"[PlatformSwitchTool] Addressables Provider 自动切换失败（mode={mode}，不影响平台切换）。");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning(
+                    $"[PlatformSwitchTool] Addressables Provider 自动切换失败（mode={mode}，不影响平台切换）: {ex.Message}");
+            }
         }
 
         private static void UpdateMacros(BuildTargetGroup group, string targetMacro)
