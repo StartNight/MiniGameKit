@@ -186,8 +186,15 @@ namespace MGKit.Editor
             if (!TryResolveProviderTypes(mode, out var bundleProvider, out var bundledAssetProvider, out var modeLabel))
                 return false;
 
+            if (BundledAssetProviderTypeProperty == null || AssetBundleProviderTypeProperty == null)
+            {
+                Debug.LogError("[Addressables] 无法反射 BundledAssetGroupSchema Provider 属性，请检查 Addressables 包版本。");
+                return false;
+            }
+
             int changed = 0;
             int already = 0;
+            int failed = 0;
             int skippedNoSchema = 0;
             var log = new StringBuilder();
             foreach (var group in settings.groups)
@@ -202,8 +209,28 @@ namespace MGKit.Editor
                     continue;
                 }
 
-                bool providerChanged = TrySetBundledSchemaProviders(schema, bundleProvider, bundledAssetProvider);
+                bool providerOk = SchemaUsesProviders(schema, bundleProvider, bundledAssetProvider);
+                bool settingsOk = mode != AddressablesProviderMode.Douyin || SchemaMatchesDouyinSettings(schema);
+                if (providerOk && settingsOk)
+                {
+                    already++;
+                    continue;
+                }
+
+                bool providerChanged = false;
+                if (!providerOk)
+                {
+                    if (!TrySetBundledSchemaProviders(schema, bundleProvider, bundledAssetProvider))
+                    {
+                        failed++;
+                        continue;
+                    }
+
+                    providerChanged = true;
+                }
+
                 bool douyinSettingsChanged = mode == AddressablesProviderMode.Douyin
+                    && !settingsOk
                     && TryApplyDouyinSchemaSettings(schema);
 
                 if (providerChanged || douyinSettingsChanged)
@@ -212,9 +239,13 @@ namespace MGKit.Editor
                     log.AppendLine(FormatGroupLogLine(group));
                     EditorUtility.SetDirty(group);
                 }
-                else if (SchemaUsesProviders(schema, bundleProvider, bundledAssetProvider)
-                         && (mode != AddressablesProviderMode.Douyin || SchemaMatchesDouyinSettings(schema)))
-                    already++;
+            }
+
+            if (failed > 0)
+            {
+                Debug.LogError($"[Addressables] {failed} 个分组 Provider 写入失败，切换未完成。");
+                RefreshProviderMenuChecks();
+                return false;
             }
 
             if (changed > 0)
