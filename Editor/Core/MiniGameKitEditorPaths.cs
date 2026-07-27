@@ -147,6 +147,54 @@ namespace MGKit.Editor
             set => EditorPrefs.SetString(Prefix + "PlatformFeatureConfig", value);
         }
 
+        public const string DefaultWeChatPackageGitUrl =
+            "https://github.com/wechat-miniprogram/minigame-tuanjie-transform-sdk.git";
+
+        public const string WeChatUpmPackageId = "com.qq.weixin.minigame";
+
+        public const string DouyinUpmPackageId = "com.bytedance.bgdt";
+
+        public const string DefaultDouyinPackageGitUrl =
+            "https://github.com/StartNight/com.bytedance.bgdt.git#v3.0.271";
+
+        public const string DefaultDouyinSeedUnityPackageRelPath =
+            "Packages/MiniGameKit/com.bytedance.bgdt-cp-3.0.271.unitypackage";
+
+        /// <summary>微信小游戏 UPM Git URL（切入微信时写入 manifest）。</summary>
+        public static string WeChatPackageGitUrl
+        {
+            get
+            {
+                var url = EditorPrefs.GetString(Prefix + "WeChatPackageGitUrl", DefaultWeChatPackageGitUrl);
+                return string.IsNullOrWhiteSpace(url) ? DefaultWeChatPackageGitUrl : url.Trim();
+            }
+            set => EditorPrefs.SetString(Prefix + "WeChatPackageGitUrl",
+                string.IsNullOrWhiteSpace(value) ? DefaultWeChatPackageGitUrl : value.Trim());
+        }
+
+        /// <summary>抖音 BGDT UPM Git URL（切入抖音时写入 manifest）。</summary>
+        public static string DouyinPackageGitUrl
+        {
+            get
+            {
+                var url = EditorPrefs.GetString(Prefix + "DouyinPackageGitUrl", DefaultDouyinPackageGitUrl);
+                return string.IsNullOrWhiteSpace(url) ? DefaultDouyinPackageGitUrl : url.Trim();
+            }
+            set => EditorPrefs.SetString(Prefix + "DouyinPackageGitUrl",
+                string.IsNullOrWhiteSpace(value) ? DefaultDouyinPackageGitUrl : value.Trim());
+        }
+
+        public static string DouyinSeedUnityPackageRelPath
+        {
+            get
+            {
+                var path = EditorPrefs.GetString(Prefix + "DouyinSeedUnityPackage", DefaultDouyinSeedUnityPackageRelPath);
+                return string.IsNullOrWhiteSpace(path) ? DefaultDouyinSeedUnityPackageRelPath : path.Trim();
+            }
+            set => EditorPrefs.SetString(Prefix + "DouyinSeedUnityPackage",
+                string.IsNullOrWhiteSpace(value) ? DefaultDouyinSeedUnityPackageRelPath : value.Trim());
+        }
+
         public static string ProjectRoot =>
             Application.dataPath.Replace("/Assets", "").Replace("\\Assets", "");
 

@@ -24,7 +24,7 @@ namespace MGKit.Editor
 
         private void OnGUI()
         {
-            _tab = GUILayout.Toolbar(_tab, new[] { "本地化", "字体", "优化", "调试", "Android" });
+            _tab = GUILayout.Toolbar(_tab, new[] { "本地化", "字体", "优化", "调试", "Android", "平台" });
 
             EditorGUILayout.Space(6);
             switch (_tab)
@@ -47,6 +47,10 @@ namespace MGKit.Editor
 
                 case 4:
                     DrawAndroid();
+                    break;
+
+                case 5:
+                    DrawPlatform();
                     break;
             }
         }
@@ -110,6 +114,34 @@ namespace MGKit.Editor
 
             if (GUILayout.Button("立即应用到 PlayerSettings"))
                 AndroidKeystoreConfigurator.ApplyIfConfigured();
+        }
+
+        private void DrawPlatform()
+        {
+            EditorGUILayout.HelpBox(
+                "切入「微信小游戏」时会写入 Packages/manifest.json；切离时会移除该 UPM 依赖。",
+                MessageType.Info);
+
+            MGKitEditorPaths.WeChatPackageGitUrl =
+                EditorGUILayout.TextField("微信 UPM Git URL", MGKitEditorPaths.WeChatPackageGitUrl);
+
+            if (GUILayout.Button("恢复微信 URL 默认值"))
+                MGKitEditorPaths.WeChatPackageGitUrl = MGKitEditorPaths.DefaultWeChatPackageGitUrl;
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.HelpBox(
+                "切入「抖音小游戏」时写入 com.bytedance.bgdt；切离时移除。StarkSDK 仍可能位于 Assets/Plugins/ByteGame。",
+                MessageType.Info);
+
+            MGKitEditorPaths.DouyinPackageGitUrl =
+                EditorGUILayout.TextField("抖音 BGDT Git URL", MGKitEditorPaths.DouyinPackageGitUrl);
+
+            if (GUILayout.Button("恢复抖音 URL 默认值"))
+                MGKitEditorPaths.DouyinPackageGitUrl = MGKitEditorPaths.DefaultDouyinPackageGitUrl;
+
+            EditorGUILayout.Space(8);
+            MGKitEditorPaths.DouyinSeedUnityPackageRelPath =
+                EditorGUILayout.TextField("抖音首次导入包相对路径（离线兜底）", MGKitEditorPaths.DouyinSeedUnityPackageRelPath);
         }
     }
 }
