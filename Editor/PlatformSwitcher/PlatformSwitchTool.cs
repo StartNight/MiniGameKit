@@ -309,6 +309,17 @@ namespace MGKit.Editor
                             EditorUserBuildSettings.SwitchActiveBuildTarget(config.BuildGroup, config.BuildTarget);
                         UpdateMacros(config.BuildGroup, "");
                         AssetDatabase.Refresh();
+                        try
+                        {
+                            AddressablesWeChatBuildMenu.ApplyProviders(AddressablesProviderMode.Default);
+                        }
+                        catch (Exception providerEx)
+                        {
+                            Debug.LogWarning(
+                                "[PlatformSwitchTool] Addressables Provider 自动切换失败（不影响平台切换）: " +
+                                providerEx.Message);
+                        }
+
                         DouyinSdkBootstrap.PromptManualInstallAndOpenBgdt();
                         Debug.LogWarning(
                             "[PlatformSwitchTool] 抖音环境已准备（BGDT），但 StarkSDK 未就绪；未启用 DOUYINMINIGAME。安装后再切一次即可。");
@@ -331,6 +342,23 @@ namespace MGKit.Editor
 
                 EditorUtility.DisplayProgressBar("Platform Switcher", "正在刷新 AssetDatabase...", 0.9f);
                 AssetDatabase.Refresh();
+
+                try
+                {
+                    if (config.Platform == MiniGamePlatform.WeChatMiniGame)
+                        AddressablesWeChatBuildMenu.ApplyProviders(AddressablesProviderMode.WeChat);
+                    else if (config.Platform == MiniGamePlatform.DouyinMiniGame
+                             && DouyinSdkBootstrap.IsStarkSdkReady(PROJ_ROOT))
+                        AddressablesWeChatBuildMenu.ApplyProviders(AddressablesProviderMode.Douyin);
+                    else
+                        AddressablesWeChatBuildMenu.ApplyProviders(AddressablesProviderMode.Default);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning(
+                        "[PlatformSwitchTool] Addressables Provider 自动切换失败（不影响平台切换）: " + ex.Message);
+                }
+
                 completed = true;
                 return true;
             }
