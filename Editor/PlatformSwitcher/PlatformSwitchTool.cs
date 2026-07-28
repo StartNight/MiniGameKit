@@ -178,9 +178,9 @@ namespace MGKit.Editor
                 if (EditorUtility.DisplayDialog(
                         "切换平台",
                         $"确认切换到 {(_configs[newIndex].DisplayName)} 平台？\n\n" +
-                        "将修改 Build Target、宏定义，并隔离不相关的 SDK。\n" +
+                        "将修改 Build Target、宏定义，并隔离不相关的 SDK（复制到 SDKs 后删除 Active）。\n" +
                         "微信 / 抖音 BGDT：增删 Packages/manifest.json 中的 UPM 依赖。\n" +
-                        "抖音：自动恢复 StarkSDK；若无缓存则引导打开 BGDT 安装。",
+                        "抖音：从 SDKs 复制恢复 StarkSDK；若无缓存则引导打开 BGDT 安装。",
                         "确认",
                         "取消"))
                 {
@@ -362,6 +362,9 @@ namespace MGKit.Editor
             return Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
 
+        /// <summary>
+        /// 隔离：先复制 Active→Archive（覆盖归档），再删除 Active，保证 SDKs 备份常在。
+        /// </summary>
         private static void MoveToArchive(string activeRelPath, string archiveRelPath)
         {
             string activeAbs = NormalizePath(Path.Combine(PROJ_ROOT, activeRelPath));
@@ -373,17 +376,55 @@ namespace MGKit.Editor
 
             if (isDir || isFile)
             {
-                SafeMove(activeAbs, archiveAbs);
+                if (!SafeCopy(activeAbs, archiveAbs))
+                    return;
+
+                if (isDir)
+                {
+                    if (!TryDeleteDirectory(activeAbs))
+                    {
+                        Debug.LogWarning(
+                            $"[PlatformSwitchTool] 已复制到归档，但 Active 目录被占用无法删除，请关闭 Unity 后手动删除: {activeAbs}");
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        File.SetAttributes(activeAbs, FileAttributes.Normal);
+                        File.Delete(activeAbs);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning(
+                            $"[PlatformSwitchTool] 已复制到归档，但 Active 文件被占用无法删除: {activeAbs}\n{ex.Message}");
+                    }
+                }
             }
 
-            // .meta 文件单独处理
+            // .meta 文件：同样复制后删除 Active 侧
             string metaSrc = activeAbs + ".meta";
             if (File.Exists(metaSrc))
             {
-                SafeMove(metaSrc, archiveAbs + ".meta");
+                if (SafeCopy(metaSrc, archiveAbs + ".meta"))
+                {
+                    try
+                    {
+                        File.SetAttributes(metaSrc, FileAttributes.Normal);
+                        File.Delete(metaSrc);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning(
+                            $"[PlatformSwitchTool] Active .meta 已复制到归档，但无法删除源: {metaSrc}\n{ex.Message}");
+                    }
+                }
             }
         }
 
+        /// <summary>
+        /// 恢复：复制 Archive→Active（覆盖），保留 SDKs 归档不删。
+        /// </summary>
         private static void RestoreFromArchive(string archiveRelPath, string activeRelPath)
         {
             string archiveAbs = NormalizePath(Path.Combine(PROJ_ROOT, archiveRelPath));
@@ -394,18 +435,17 @@ namespace MGKit.Editor
             Debug.Log($"[PlatformSwitchTool] RestoreFromArchive 检测: {archiveAbs} | 是目录={isDir} | 是文件={isFile}");
 
             if (isDir || isFile)
-            {
-                SafeMove(archiveAbs, activeAbs);
-            }
+                SafeCopy(archiveAbs, activeAbs);
 
             string metaSrc = archiveAbs + ".meta";
             if (File.Exists(metaSrc))
-            {
-                SafeMove(metaSrc, activeAbs + ".meta");
-            }
+                SafeCopy(metaSrc, activeAbs + ".meta");
         }
 
-        private static void SafeMove(string source, string dest)
+        /// <summary>
+        /// 复制 source→dest（覆盖），不删除源。目录用递归复制；文件用 File.Copy。
+        /// </summary>
+        private static bool SafeCopy(string source, string dest)
         {
             source = NormalizePath(source);
             dest = NormalizePath(dest);
@@ -418,69 +458,38 @@ namespace MGKit.Editor
                     if (!string.IsNullOrEmpty(destParent) && !Directory.Exists(destParent))
                         Directory.CreateDirectory(destParent);
 
-                    // 先尝试原子移动（最快）
-                    try
+                    if (Directory.Exists(dest))
                     {
-                        if (Directory.Exists(dest))
-                            Directory.Delete(dest, true);
-                        Directory.Move(source, dest);
-                        Debug.Log($"[PlatformSwitchTool] 目录已移动(原子): {source} -> {dest}");
-                        return;
-                    }
-                    catch (IOException)
-                    {
-                        Debug.LogWarning($"[PlatformSwitchTool] 原子移动失败（文件被占用），改用 复制+删除 策略: {source}");
+                        if (!TryDeleteDirectory(dest))
+                        {
+                            Debug.LogError(
+                                $"[PlatformSwitchTool] 目标目录无法清空，复制中止: {dest}");
+                            return false;
+                        }
                     }
 
-                    // 回退策略：递归复制 + 尽力删除
                     CopyDirectoryRecursive(source, dest);
                     Debug.Log($"[PlatformSwitchTool] 目录已复制: {source} -> {dest}");
-
-                    // 释放 Unity 可能持有的句柄
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-
-                    // 尝试删除源目录，如果失败则标记待清理
-                    if (!TryDeleteDirectory(source))
-                    {
-                        string marker = source + ".__DELETE_ME__";
-                        try { File.WriteAllText(marker, "This directory was copied by PlatformSwitchTool and can be safely deleted."); }
-                        catch { /* ignore */ }
-                        Debug.LogWarning($"[PlatformSwitchTool] 源目录部分文件被占用，已复制成功但无法完全删除。请关闭 Unity 后手动删除: {source}");
-                    }
-                    else
-                    {
-                        Debug.Log($"[PlatformSwitchTool] 源目录已清理: {source}");
-                    }
+                    return true;
                 }
-                else if (File.Exists(source))
+
+                if (File.Exists(source))
                 {
                     string destParent = Path.GetDirectoryName(dest);
                     if (!string.IsNullOrEmpty(destParent) && !Directory.Exists(destParent))
                         Directory.CreateDirectory(destParent);
-                    if (File.Exists(dest))
-                        File.Delete(dest);
+                    File.Copy(source, dest, true);
+                    Debug.Log($"[PlatformSwitchTool] 文件已复制: {source} -> {dest}");
+                    return true;
+                }
 
-                    try
-                    {
-                        File.Move(source, dest);
-                    }
-                    catch (IOException)
-                    {
-                        File.Copy(source, dest, true);
-                        try { File.Delete(source); }
-                        catch { Debug.LogWarning($"[PlatformSwitchTool] 文件已复制但源文件被占用无法删除: {source}"); }
-                    }
-                    Debug.Log($"[PlatformSwitchTool] 文件已移动: {source} -> {dest}");
-                }
-                else
-                {
-                    Debug.LogWarning($"[PlatformSwitchTool] 源路径不存在，跳过: {source}");
-                }
+                Debug.LogWarning($"[PlatformSwitchTool] 源路径不存在，跳过: {source}");
+                return false;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[PlatformSwitchTool] 移动失败: {source} -> {dest}\n{ex}");
+                Debug.LogError($"[PlatformSwitchTool] 复制失败: {source} -> {dest}\n{ex}");
+                return false;
             }
         }
 
