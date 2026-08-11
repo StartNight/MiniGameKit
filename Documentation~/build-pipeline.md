@@ -157,9 +157,14 @@ config.OutputPath = "";               // 空则用 DefaultOutputDir
 
 ---
 
-## 8. 微信加载页补丁
+## 8. 微信 / 抖音加载页补丁
 
-`Tools/Minigame/构建/微信小游戏/应用加载页配置` — `WeChatLoadingPagePatchTool`，按项目需求 patch 微信加载页资源（详见工具源码注释）。
+| 菜单 | 类 | 说明 |
+|------|-----|------|
+| `Tools/Minigame/构建/微信小游戏/应用加载页配置` | `WeChatLoadingPagePatchTool` | patch 微信 `wechat-default/game.js` 与 Logo |
+| `Tools/Minigame/构建/抖音小游戏/应用加载页配置` | `DouyinLoadingPagePatchTool` | patch StarkSDK `DefaultTemplate/game.js` 与 Logo（样式/文案与微信工具对齐） |
+
+详见各工具源码注释。
 
 ---
 

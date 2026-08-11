@@ -20,6 +20,7 @@ namespace MGKit.Editor
         public const string BuildMenu = MenuRoot + "构建/";
         public const string BuildAddressablesMenu = BuildMenu + "Addressables/";
         public const string BuildWeChatMenu = BuildMenu + "微信小游戏/";
+        public const string BuildDouyinMenu = BuildMenu + "抖音小游戏/";
         public const string BuildOptimizeMenu = BuildMenu + "优化/";
         public const string BuildLightmapMenu = BuildMenu + "光照/";
         public const string AndroidMenu = MenuRoot + "Android/";
