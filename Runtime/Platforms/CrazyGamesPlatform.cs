@@ -10,6 +10,7 @@
  *****************************************************/
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 #if CRAZYGAMES
@@ -30,6 +31,8 @@ namespace MGKit
         public event Action OnShow;
 
         public event Action OnHide;
+
+        public event Action<Dictionary<string, object>> OnShowWithOptions;
 
         public void Initialize()
         {
@@ -138,6 +141,27 @@ namespace MGKit
         public void ReportGameStop()
         {
             CrazySDK.Game.GameplayStop();
+        }
+
+        public void CheckSidebarSupported(
+            Action<bool> onResult,
+            Action onComplete = null,
+            Action<int, string> onError = null)
+        {
+            PlatformSidebarSupport.CheckUnsupported(onResult, onComplete, onError);
+        }
+
+        public void NavigateToSidebar(
+            Action onSuccess = null,
+            Action onComplete = null,
+            Action<int, string> onError = null)
+        {
+            PlatformSidebarSupport.NavigateUnsupported(onSuccess, onComplete, onError);
+        }
+
+        public bool IsFromSidebar(IReadOnlyDictionary<string, object> options = null)
+        {
+            return false;
         }
 
         #endregion IMiniGamePlatform 实现 (Fallbacks)

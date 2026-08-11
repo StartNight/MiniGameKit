@@ -53,6 +53,8 @@ namespace MGKit
 
         public static bool ReportGameplayStopOnLobbyReturn => ActiveProfile.reportGameplayStopOnLobbyReturn;
 
+        public static bool ShowSidebarRevisitEntry => ActiveProfile.showSidebarRevisitEntry;
+
         private static PlatformFeatureProfile ActiveProfile
         {
             get

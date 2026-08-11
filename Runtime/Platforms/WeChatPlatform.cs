@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 #if MGKIT_WECHAT
+using System.Collections.Generic;
 using WeChatWASM;
 namespace MGKit
 {
@@ -15,6 +16,7 @@ public class WeChatPlatform : IPlatformSDK
 
     public event Action OnShow;
     public event Action OnHide;
+    public event Action<Dictionary<string, object>> OnShowWithOptions;
 
     private Action<WeChatWASM.OnShowListenerResult> _onShowDelegate;
     private Action<WeChatWASM.GeneralCallbackResult> _onHideDelegate;
@@ -135,6 +137,27 @@ public class WeChatPlatform : IPlatformSDK
     public void ReportGameStart()
     {
         WX.ReportGameStart();
+    }
+
+    public void CheckSidebarSupported(
+        Action<bool> onResult,
+        Action onComplete = null,
+        Action<int, string> onError = null)
+    {
+        PlatformSidebarSupport.CheckUnsupported(onResult, onComplete, onError);
+    }
+
+    public void NavigateToSidebar(
+        Action onSuccess = null,
+        Action onComplete = null,
+        Action<int, string> onError = null)
+    {
+        PlatformSidebarSupport.NavigateUnsupported(onSuccess, onComplete, onError);
+    }
+
+    public bool IsFromSidebar(IReadOnlyDictionary<string, object> options = null)
+    {
+        return false;
     }
 
     internal static void PrepareForFullscreenAdOverlay()

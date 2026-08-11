@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 #if DOUYINMINIGAME
@@ -16,20 +17,26 @@ public class DouyinPlatform : IPlatformSDK
 
     public event Action OnShow;
     public event Action OnHide;
+    public event Action<Dictionary<string, object>> OnShowWithOptions;
 
     private TTSDK.TTAppLifeCycle.OnShowEventWithDict _onShowDelegate;
     private TTSDK.TTAppLifeCycle.OnAppHideEvent _onHideDelegate;
 
     public void Initialize()
     {
-        TT.InitSDK();
+        // 早启由 DouyinEarlyInit 负责；此处仅兜底（例如未走到 RuntimeInitialize）
+        DouyinEarlyInit.EnsureInit();
         IsInitialized = true;
         Debug.Log("[DouyinPlatform] 抖音大一统SDK初始化完成");
 
 #if !UNITY_EDITOR
         TT.ShowShareMenu();
 #endif
-        _onShowDelegate = (_) => { OnShow?.Invoke(); };
+        _onShowDelegate = (dict) =>
+        {
+            OnShowWithOptions?.Invoke(dict);
+            OnShow?.Invoke();
+        };
         _onHideDelegate = () => { OnHide?.Invoke(); };
         TT.GetAppLifeCycle().OnShow += _onShowDelegate;
         TT.GetAppLifeCycle().OnHide += _onHideDelegate;
@@ -115,6 +122,43 @@ public class DouyinPlatform : IPlatformSDK
     public void ReportGameStart()
     {
         // 抖音无此明确对应接口
+    }
+
+    public void CheckSidebarSupported(
+        Action<bool> onResult,
+        Action onComplete = null,
+        Action<int, string> onError = null)
+    {
+        TT.CheckScene(
+            TTSideBar.SceneEnum.SideBar,
+            supported => onResult?.Invoke(supported),
+            () => onComplete?.Invoke(),
+            (errCode, errMsg) => onError?.Invoke(errCode, errMsg));
+    }
+
+    public void NavigateToSidebar(
+        Action onSuccess = null,
+        Action onComplete = null,
+        Action<int, string> onError = null)
+    {
+        var data = new JsonData { ["scene"] = "sidebar" };
+        TT.NavigateToScene(
+            data,
+            () => onSuccess?.Invoke(),
+            () => onComplete?.Invoke(),
+            (errCode, errMsg) => onError?.Invoke(errCode, errMsg));
+    }
+
+    public bool IsFromSidebar(IReadOnlyDictionary<string, object> options = null)
+    {
+        if (options != null)
+            return PlatformSidebarSupport.IsFromSidebarOptions(options);
+
+        var env = DouyinEarlyInit.Env;
+        if (env == null)
+            return false;
+
+        return env.GetLaunchFrom() == "homepage" && env.GetLocation() == "sidebar_card";
     }
 
     #endregion

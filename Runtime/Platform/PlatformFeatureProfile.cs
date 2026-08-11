@@ -17,6 +17,7 @@ namespace MGKit
         public bool showLobbyWeChatCallbackButton;
         public bool showPrivacyPolicyInSettings;
         public bool reportGameplayStopOnLobbyReturn;
+        public bool showSidebarRevisitEntry;
     }
 
     [Serializable]
@@ -36,18 +37,31 @@ namespace MGKit
             return platform switch
             {
                 MiniGamePlatform.CrazyGames => CrazyGames,
+                MiniGamePlatform.DouyinMiniGame => Douyin,
                 _ => MiniGameStyle
             };
         }
 
-        /// <summary>微信 / 抖音 / Editor 等小游戏风格平台默认。</summary>
+        /// <summary>微信 / Editor 等小游戏风格平台默认。</summary>
         public static PlatformFeatureProfile MiniGameStyle => new PlatformFeatureProfile
         {
             showLobbyShareButton = true,
             showLobbyFriendPkButton = false,
             showLobbyWeChatCallbackButton = true,
             showPrivacyPolicyInSettings = false,
-            reportGameplayStopOnLobbyReturn = false
+            reportGameplayStopOnLobbyReturn = false,
+            showSidebarRevisitEntry = false
+        };
+
+        /// <summary>抖音小游戏默认（含侧边栏复访入口）。</summary>
+        public static PlatformFeatureProfile Douyin => new PlatformFeatureProfile
+        {
+            showLobbyShareButton = true,
+            showLobbyFriendPkButton = false,
+            showLobbyWeChatCallbackButton = true,
+            showPrivacyPolicyInSettings = false,
+            reportGameplayStopOnLobbyReturn = false,
+            showSidebarRevisitEntry = true
         };
 
         public static PlatformFeatureProfile CrazyGames => new PlatformFeatureProfile
@@ -56,7 +70,8 @@ namespace MGKit
             showLobbyFriendPkButton = false,
             showLobbyWeChatCallbackButton = false,
             showPrivacyPolicyInSettings = true,
-            reportGameplayStopOnLobbyReturn = true
+            reportGameplayStopOnLobbyReturn = true,
+            showSidebarRevisitEntry = false
         };
 
         public static List<PlatformFeatureProfileEntry> CreateAllPlatformEntries()

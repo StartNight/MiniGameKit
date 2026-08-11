@@ -11,6 +11,7 @@
  *****************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using MGKit.Analytics;
 using UnityEngine;
@@ -31,6 +32,9 @@ namespace MGKit
 
         public static event Action OnMiniGameHide;
 
+        /// <summary>带启动参数的 OnShow（抖音侧边栏复访等场景使用）。</summary>
+        public static event Action<Dictionary<string, object>> OnMiniGameShowWithOptions;
+
         public override void AwakeOf()
         {
             base.AwakeOf();
@@ -40,6 +44,7 @@ namespace MGKit
             {
                 _currentPlatform.OnShow += () => OnMiniGameShow?.Invoke();
                 _currentPlatform.OnHide += () => OnMiniGameHide?.Invoke();
+                _currentPlatform.OnShowWithOptions += options => OnMiniGameShowWithOptions?.Invoke(options);
             }
 
             OnMiniGameHide += GameAnalytics.TrackSessionEnd;
@@ -177,6 +182,67 @@ namespace MGKit
         public void OpenBusinessView(string businessType = "servicecommentpage", Action<string> fail = null, Action<string> success = null)
         {
             _currentPlatform?.OpenBusinessView(businessType, fail, success);
+        }
+
+        /// <summary>检测是否支持侧边栏（抖音 CheckScene）。</summary>
+        public static void CheckSidebarSupported(
+            Action<bool> onResult,
+            Action onComplete = null,
+            Action<int, string> onError = null)
+        {
+            var platform = EnsurePlatformSdk();
+            if (platform == null)
+            {
+                onResult?.Invoke(false);
+                onComplete?.Invoke();
+                return;
+            }
+
+            platform.CheckSidebarSupported(onResult, onComplete, onError);
+        }
+
+        /// <summary>跳转到侧边栏（抖音 NavigateToScene）。</summary>
+        public static void NavigateToSidebar(
+            Action onSuccess = null,
+            Action onComplete = null,
+            Action<int, string> onError = null)
+        {
+            EnsurePlatformSdk()?.NavigateToSidebar(onSuccess, onComplete, onError);
+        }
+
+        /// <summary>
+        /// 是否从首页侧边栏卡片进入。
+        /// options 为 null 时使用冷启动环境参数。
+        /// </summary>
+        public static bool IsFromSidebar(IReadOnlyDictionary<string, object> options = null)
+        {
+            var platform = EnsurePlatformSdk();
+            if (platform != null)
+                return platform.IsFromSidebar(options);
+
+#if DOUYINMINIGAME
+            if (options != null)
+                return PlatformSidebarSupport.IsFromSidebarOptions(options);
+
+            var env = DouyinEarlyInit.Env;
+            return env != null
+                && env.GetLaunchFrom() == "homepage"
+                && env.GetLocation() == "sidebar_card";
+#else
+            return false;
+#endif
+        }
+
+        static IPlatformSDK EnsurePlatformSdk()
+        {
+            var adManager = AdManager.Instance;
+            if (adManager == null)
+                return null;
+
+            if (!adManager.IsInitialized)
+                adManager.Initialize();
+
+            return adManager.PlatformSDK;
         }
 
         #endregion 分享与平台功能

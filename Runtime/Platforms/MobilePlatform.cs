@@ -12,6 +12,7 @@
 
 #if UNITY_ANDROID || UNITY_IOS
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 namespace MGKit
@@ -26,6 +27,7 @@ public class MobilePlatform : IPlatformSDK
 
     public event Action OnShow;
     public event Action OnHide;
+    public event Action<Dictionary<string, object>> OnShowWithOptions;
 
     private static bool IsAndroid()
     {
@@ -129,6 +131,27 @@ public class MobilePlatform : IPlatformSDK
     public void ReportGameStart()
     {
         Debug.Log("[MobilePlatform] 模拟上报游戏开始");
+    }
+
+    public void CheckSidebarSupported(
+        Action<bool> onResult,
+        Action onComplete = null,
+        Action<int, string> onError = null)
+    {
+        PlatformSidebarSupport.CheckUnsupported(onResult, onComplete, onError);
+    }
+
+    public void NavigateToSidebar(
+        Action onSuccess = null,
+        Action onComplete = null,
+        Action<int, string> onError = null)
+    {
+        PlatformSidebarSupport.NavigateUnsupported(onSuccess, onComplete, onError);
+    }
+
+    public bool IsFromSidebar(IReadOnlyDictionary<string, object> options = null)
+    {
+        return false;
     }
 
     #endregion

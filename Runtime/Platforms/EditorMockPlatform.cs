@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MGKit
@@ -12,6 +13,8 @@ namespace MGKit
         public event Action OnShow;
 
         public event Action OnHide;
+
+        public event Action<Dictionary<string, object>> OnShowWithOptions;
 
         public void Initialize()
         {
@@ -97,10 +100,37 @@ namespace MGKit
             Debug.Log("[EditorMockPlatform] 模拟上报游戏开始");
         }
 
+        public void CheckSidebarSupported(
+            Action<bool> onResult,
+            Action onComplete = null,
+            Action<int, string> onError = null)
+        {
+            PlatformSidebarSupport.CheckUnsupported(onResult, onComplete, onError);
+        }
+
+        public void NavigateToSidebar(
+            Action onSuccess = null,
+            Action onComplete = null,
+            Action<int, string> onError = null)
+        {
+            PlatformSidebarSupport.NavigateUnsupported(onSuccess, onComplete, onError);
+        }
+
+        public bool IsFromSidebar(IReadOnlyDictionary<string, object> options = null)
+        {
+            return PlatformSidebarSupport.IsFromSidebarOptions(options);
+        }
+
         // 提供测试方法，方便在 Editor 里模拟微信的 OnShow 和 OnHide
         public void MockTriggerOnShow() => OnShow?.Invoke();
 
         public void MockTriggerOnHide() => OnHide?.Invoke();
+
+        public void MockTriggerOnShowWithOptions(Dictionary<string, object> options)
+        {
+            OnShowWithOptions?.Invoke(options);
+            OnShow?.Invoke();
+        }
 
         #endregion IMiniGamePlatform 实现
 
